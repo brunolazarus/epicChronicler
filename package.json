@@ -1,0 +1,12 @@
+{
+  "name": "chronicler",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter api dev",
+    "worker": "pnpm --filter api worker",
+    "dev:all": "concurrently -n api,worker -c blue,green \"pnpm dev\" \"pnpm worker\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

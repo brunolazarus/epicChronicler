@@ -14,9 +14,7 @@ technical and non-technical audiences.
 
 | Post | Phase | Theme | Status |
 |---|---|---|---|
-| 1 | Pre-build | The idea — what Chronicler is and why I'm building it in public | Draft |
-| 2 | Pre-build | Writing an SDD before touching code | Draft |
-| 3 | Pre-build | Tech stack decisions — and what I ruled out | Draft |
+| 1–3 | Pre-build + Phase 0 kickoff | Idea + SDD + tech stack + Phase 0 start | **Written** → [2026-06-03-kickoff.md](2026-06-03-kickoff.md) |
 | 4 | Phase 0 | Why I built a throwaway web page before the app | Draft |
 | 5 | Phase 0 | What the AI pipeline actually cost and how fast it ran | Draft |
 | 6 | Phase 1 | Building a production API before the frontend | Draft |
