@@ -1,7 +1,7 @@
 import { Worker } from 'bullmq'
 import { redis } from '../lib/redis.js'
 import { downloadFromR2, deleteFromR2 } from '../lib/r2.js'
-import { transcribeAudio } from '../lib/whisper.js'
+import { transcribeAudio } from '../lib/transcription/index.js'
 import type { TranscriptionJobData, TranscriptionJobResult } from '../queues/index.js'
 import { QueueName, type JobName } from '../queues/names.js'
 

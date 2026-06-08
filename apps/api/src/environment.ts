@@ -4,8 +4,10 @@ import { z } from 'zod'
 const schema = z.object({
   PORT: z.coerce.number().default(3000),
   REDIS_URL: z.string().default('redis://localhost:6379'),
-  OPENAI_API_KEY: z.string(),
-  ANTHROPIC_API_KEY: z.string(),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENROUTER_API_KEY: z.string(),
+  GROQ_API_KEY: z.string(),
+  ELEVENLABS_API_KEY: z.string().optional(),
   R2_ACCOUNT_ID: z.string(),
   R2_ACCESS_KEY_ID: z.string(),
   R2_SECRET_ACCESS_KEY: z.string(),

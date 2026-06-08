@@ -1,26 +1,39 @@
-import './env.js' // validate env before anything else
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
-import { env } from './env.js'
-import pipelineRoutes from './routes/pipeline.js'
+import "./environment.js"; // validate env before anything else
+import { serve } from "@hono/node-server";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { apiReference } from "@scalar/hono-api-reference";
+import { cors } from "hono/cors";
+import { logger } from "hono/logger";
+import { env } from "./environment.js";
+import pipelineRoutes from "./routes/pipeline.js";
 
-const app = new Hono()
+const app = new OpenAPIHono();
 
-app.use('*', logger())
-app.use('*', cors())
+app.use("*", logger());
+app.use("*", cors());
 
-app.route('/pipeline', pipelineRoutes)
+app.route("/pipeline", pipelineRoutes);
 
-app.get('/', (c) => c.html(TEST_RIG_HTML))
+app.doc("/openapi.json", {
+  openapi: "3.0.0",
+  info: {
+    title: "Chronicler API",
+    version: "0.0.1",
+    description: "AI Pipeline Service — Phase 0",
+  },
+});
 
-app.notFound((c) => c.json({ error: 'Not found' }, 404))
+app.get("/doc", apiReference({ spec: { url: "/openapi.json" } }));
+
+app.get("/", (c) => c.html(TEST_RIG_HTML));
+
+app.notFound((c) => c.json({ error: "Not found" }, 404));
 
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
-  console.log(`✅ Chronicler API running on http://localhost:${info.port}`)
-  console.log(`   Test rig → http://localhost:${info.port}/`)
-})
+  console.log(`✅ Chronicler API running on http://localhost:${info.port}`);
+  console.log(`   Test rig → http://localhost:${info.port}/`);
+  console.log(`   API docs  → http://localhost:${info.port}/doc`);
+});
 
 // ─── Phase 0 web test rig ────────────────────────────────────────────────────
 // Throwaway HTML served directly from the API. Drives the full pipeline:
@@ -305,4 +318,4 @@ const TEST_RIG_HTML = /* html */ `<!DOCTYPE html>
     }
   </script>
 </body>
-</html>`
+</html>`;

@@ -343,6 +343,7 @@ generated_at    TIMESTAMP   DEFAULT NOW()
 ## 9. API Design
 
 > All endpoints are prefixed with `/api/v1`. All requests require a valid auth token (JWT) except `/auth/*`.
+> API documentation is auto-generated from route schemas via `@hono/zod-openapi` and served as an interactive Scalar UI at `/doc`. The OpenAPI JSON spec is available at `/openapi.json`.
 
 ### Auth
 ```
@@ -469,6 +470,7 @@ Chronicles:
 |---|---|---|
 | Mobile | React Native (Expo) | Cross-platform iOS + Android; Expo simplifies audio, push, and OTA updates |
 | Backend | Hono (Node.js / TypeScript) | TypeScript-first, minimal overhead, async-native; future upgrade path to Cloudflare Workers edge deployment |
+| API Docs | `@hono/zod-openapi` + Scalar UI | Routes defined with Zod schemas that double as OpenAPI spec; auto-generated interactive docs served at `/doc` |
 | Database | PostgreSQL via Supabase | Managed Postgres + built-in auth + realtime subscriptions; `@supabase/supabase-js` works natively in Node |
 | File Storage | Cloudflare R2 | S3-compatible, zero egress fees — important for audio streaming; pairs naturally with Hono's Cloudflare lineage |
 | Job Queue | Redis + BullMQ | De facto standard for Node.js async queues; robust retry logic, job prioritisation, and dashboard UI out of the box |
