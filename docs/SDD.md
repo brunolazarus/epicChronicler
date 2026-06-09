@@ -1,8 +1,19 @@
 # Chronicler — Software Design Document (SDD)
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Date:** June 2026  
-**Status:** Active — Ready for Phase 0 (AI pipeline spike)  
+**Status:** Active — Phase 0 complete; MCP server in progress (Phase 1)
+
+---
+
+## Changelog
+
+| Version | Date | Summary |
+|---|---|---|
+| 0.4 | 2026-06-09 | Added MCP server as Phase 1; postponed Expo to Phase 3+; updated tech stack to actual providers (Groq Whisper, Kokoro 82M via OpenRouter); added `packages/core` service isolation to architecture |
+| 0.3 | 2026-06-01 | Phase 0 complete; switched to OpenRouter for LLM + TTS; added Groq for transcription; built provider abstraction layer; added `@hono/zod-openapi` + Scalar UI for API docs |
+| 0.2 | 2026-05 | Data model finalised; all design decisions resolved; API endpoints defined |
+| 0.1 | 2026-05 | Initial draft — vision, personas, user stories, functional requirements |
 
 ---
 
@@ -234,15 +245,19 @@ Friend groups share experiences constantly, but have no good way to preserve the
                     ▼                            ▼                            ▼
           ┌─────────────────┐        ┌───────────────────┐        ┌──────────────────┐
           │  File Storage   │        │  AI Pipeline      │        │  Database        │
-          │  (Cloudflare R2)│        │                   │        │  (PostgreSQL via  │
-          │                 │        │  1. Whisper API   │        │   Supabase)       │
-          │  - Raw audio    │        │  2. Claude Sonnet │        │                  │
-          │  - TTS audio    │        │  3. OpenAI TTS    │        │  - Users         │
-          │  - Avatars      │        │                   │        │  - Groups        │
+          │  (Cloudflare R2)│        │  (packages/core)  │        │  (PostgreSQL via  │
+          │                 │        │                   │        │   Supabase)       │
+          │  - Raw audio    │        │  1. Groq Whisper  │        │                  │
+          │  - TTS audio    │        │  2. Claude Sonnet │        │  - Users         │
+          │  - Avatars      │        │  3. Kokoro TTS    │        │  - Groups        │
           └─────────────────┘        └───────────────────┘        │  - Events        │
                                                                    │  - Recordings    │
-                                                                   │  - Chronicles    │
-                                                                   └──────────────────┘
+                                     ┌───────────────────┐        │  - Chronicles    │
+                                     │  MCP Server       │        └──────────────────┘
+                                     │  (apps/mcp)       │
+                                     │  transcribe_voice │
+                                     │  generate_chronicle│
+                                     └───────────────────┘
 ```
 
 ### 7.2 Key Architectural Decisions
@@ -425,7 +440,7 @@ GET    /flavours               List all active flavours
 8. Transcripts concatenated with speaker labels:
    "Alex said: [transcript 1]\n\nSam said: [transcript 2]"
 9. Flavour system prompt fetched from DB
-10. Combined prompt sent to Claude Sonnet 4.6 via `@anthropic-ai/sdk`
+10. Combined prompt sent to Claude Sonnet 4.6 via OpenRouter
 11. LLM returns chronicle text → stored in Chronicle.body_text
 12. TTS job triggered with chronicle text
 13. TTS audio stored in R2 → stored in Chronicle.audio_url
@@ -474,9 +489,10 @@ Chronicles:
 | Database | PostgreSQL via Supabase | Managed Postgres + built-in auth + realtime subscriptions; `@supabase/supabase-js` works natively in Node |
 | File Storage | Cloudflare R2 | S3-compatible, zero egress fees — important for audio streaming; pairs naturally with Hono's Cloudflare lineage |
 | Job Queue | Redis + BullMQ | De facto standard for Node.js async queues; robust retry logic, job prioritisation, and dashboard UI out of the box |
-| Transcription | OpenAI Whisper API | Best-in-class accuracy; Node.js `openai` SDK handles multipart audio upload |
-| LLM | Claude Sonnet 4.6 | Strong creative/narrative output; cost-effective at scale; `@anthropic-ai/sdk` for Node |
-| TTS | OpenAI TTS (tts-1-hd) | Good quality, affordable, fast; voices configurable per flavour |
+| Transcription | Groq Whisper (whisper-large-v3-turbo) | Faster than OpenAI Whisper, free tier; OpenAI-compatible API — one-line swap if needed |
+| LLM | Claude Sonnet 4.6 via OpenRouter | Strong creative/narrative output; OpenRouter provides routing + fallback across providers |
+| TTS | Kokoro 82M via OpenRouter | ~$0.000001/char; Kokoro voices mapped per flavour; OpenAI-compatible `/audio/speech` endpoint |
+| MCP Server | Model Context Protocol (`@modelcontextprotocol/sdk`) | Exposes pipeline as AI-callable tools; works in Claude Desktop, Cursor, and any MCP client |
 | Push Notifications | Expo Push Notifications | Free, handles both APNS and FCM from one SDK |
 | CI/CD | GitHub Actions | Standard; free tier sufficient for MVP |
 
@@ -484,28 +500,44 @@ Chronicles:
 
 ## 12. MVP Phases & Milestones
 
-> **Rationale for ordering:** The AI pipeline (transcription → LLM → TTS) is the highest-risk and most novel part of Chronicler. It is built and validated first via a throwaway web test rig before any mobile work begins. The backend built in Phase 0 is the production backend — nothing is thrown away.
+> **Rationale for ordering:** The AI pipeline (transcription → LLM → TTS) is the highest-risk and most novel part of Chronicler. It is validated first (Phase 0), then immediately exposed as a usable, shareable artefact via an MCP server (Phase 1) — something real people can interact with before the mobile app exists. The full backend and mobile client follow.
 
 ---
 
-### Phase 0 — AI Pipeline Spike (Weeks 1–2)
+### Phase 0 — AI Pipeline Spike ✅ Complete
 **Goal:** Prove the full AI pipeline works, costs are acceptable, and latency is within targets — before writing a single line of mobile code.
 
-- [ ] Hono + TypeScript project scaffolded (monorepo root)
-- [ ] Supabase connected (Postgres client + service role key)
-- [ ] Cloudflare R2 bucket set up; upload/download working
-- [ ] BullMQ worker wired to Redis; basic job round-trip confirmed
-- [ ] Whisper transcription job: upload audio → get transcript
-- [ ] LLM chronicle job: transcripts + flavour prompt → chronicle text (all 4 flavours tested)
-- [ ] TTS job: chronicle text → audio file stored in R2
-- [ ] **Minimal web test rig** — a simple HTML page (or Hono-served form) that drives the full pipeline: pick audio file → upload → generate → read text → play TTS audio
-- [ ] Log and review per-chronicle cost and end-to-end latency
+- [x] Hono + TypeScript project scaffolded (monorepo root)
+- [x] Cloudflare R2 bucket set up; upload/download working
+- [x] BullMQ worker wired to Redis; basic job round-trip confirmed
+- [x] Groq Whisper transcription job: upload audio → get transcript
+- [x] LLM chronicle job: transcripts + flavour prompt → chronicle text (all 4 flavours tested)
+- [x] TTS job: chronicle text → audio file stored in R2 (Kokoro 82M via OpenRouter)
+- [x] Provider abstraction layer: each AI capability behind an interface; swap is one line
+- [x] **Minimal web test rig** — HTML page that drives the full pipeline end to end
+- [x] OpenAPI docs auto-generated from route schemas (`@hono/zod-openapi` + Scalar UI at `/doc`)
+- [x] Per-chronicle cost and latency logged and reviewed
 
-**Exit criteria:** Upload a recorded voice note via the web rig and receive a narrated chronicle in all 4 flavours. Cost per chronicle is known and acceptable.
+**Outcome:** Full pipeline confirmed working. Cost per chronicle: fractions of a cent. Latency: within targets.
 
 ---
 
-### Phase 1 — Backend Foundation (Weeks 3–5)
+### Phase 1 — MCP Server (in progress)
+**Goal:** Make the pipeline callable from any AI assistant (Claude Desktop, Cursor, etc.) — a working, shareable artefact that demonstrates the product without requiring the mobile app.
+
+- [ ] Monorepo restructured: shared providers extracted to `packages/core` (`@chronicler/core`)
+- [ ] `apps/worker` isolated as its own package (BullMQ consumers)
+- [ ] `apps/mcp` scaffolded with `@modelcontextprotocol/sdk`
+- [ ] `transcribe_voice` tool: accepts base64 audio + filename → returns transcript
+- [ ] `generate_chronicle` tool: accepts transcript(s) + flavour → returns text chronicle + TTS audio (base64)
+- [ ] MCP server tested in Claude Desktop: voice note in, narrated chronicle out
+- [ ] README updated with MCP usage instructions
+
+**Exit criteria:** A Claude Desktop user can send a voice note and receive a narrated chronicle in their chosen flavour without touching any app or web UI.
+
+---
+
+### Phase 2 — Backend Foundation
 **Goal:** Full production API built on top of the proven pipeline; no mobile code yet.
 
 - [ ] Supabase Auth middleware integrated into Hono (JWT validation)
@@ -525,7 +557,7 @@ Chronicles:
 
 ---
 
-### Phase 2 — Mobile Foundation (Weeks 6–8)
+### Phase 3 — Mobile Foundation _(postponed)_
 **Goal:** Expo app scaffolded; auth and group management working on device.
 
 - [ ] Expo project setup with TypeScript + file-based routing
@@ -539,7 +571,7 @@ Chronicles:
 
 ---
 
-### Phase 3 — Recording Loop (Weeks 9–10)
+### Phase 4 — Recording Loop _(postponed)_
 **Goal:** Members can record, upload, and see transcripts on device.
 
 - [ ] Event creation screen with flavour picker
@@ -554,7 +586,7 @@ Chronicles:
 
 ---
 
-### Phase 4 — Chronicle + Full Experience (Weeks 11–12)
+### Phase 5 — Chronicle + Full Experience _(postponed)_
 **Goal:** The complete Chronicler experience works end-to-end on device.
 
 - [ ] "Generate Chronicle" trigger in event screen (any member)
@@ -569,7 +601,7 @@ Chronicles:
 
 ---
 
-### Phase 5 — TLDR, Polish & Launch (Weeks 13–14)
+### Phase 6 — TLDR, Polish & Launch _(postponed)_
 **Goal:** TLDR complete; app is shippable.
 
 - [ ] TLDR screen: generated on new-member onboarding + available on demand

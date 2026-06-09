@@ -30,7 +30,7 @@ The pipeline works. A few things I found along the way:
 
 **Want to follow along or weigh in?**
 
-I'll keep posting as each phase wraps up, next is the full backend with auth, groups, and the recordings API. If you've built AI products and have opinions on provider choices, queue architecture, or prompt design I'd genuinely love to hear them.
+I'll keep posting as each phase wraps up. Next: making the pipeline callable from any AI assistant — voice in, narrated chronicle out, no app required. If you've built AI products and have opinions on provider choices, queue architecture, or prompt design I'd genuinely love to hear them.
 
 ---
 
