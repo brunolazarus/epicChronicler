@@ -4,4 +4,5 @@ dist/
 .env.local
 .DS_Store
 *.log
-recording.m4a.claude/
+recording.m4a
+.claude/
