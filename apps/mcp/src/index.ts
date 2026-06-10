@@ -1,4 +1,11 @@
 import '@chronicler/core' // validate env before anything else
+
+process.on('uncaughtException', (err) => {
+  console.error('uncaughtException:', err)
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('unhandledRejection:', reason)
+})
 import { createServer, IncomingMessage, ServerResponse } from 'node:http'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
