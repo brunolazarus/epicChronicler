@@ -96,7 +96,7 @@ if (PORT) {
     res.end(JSON.stringify({ error: 'Not found' }))
   })
 
-  httpServer.listen(PORT, () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.error(`✅ Chronicler MCP HTTP server listening on port ${PORT} (path /mcp)`)
   })
 } else {
