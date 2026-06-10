@@ -1,4 +1,4 @@
-import '@chronicler/core' // validate env before anything else
+import '@chronicler/core' // validates env on load — MCP requires: OPENROUTER_API_KEY, GROQ_API_KEY
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js'

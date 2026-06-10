@@ -8,10 +8,11 @@ const schema = z.object({
   OPENROUTER_API_KEY: z.string(),
   GROQ_API_KEY: z.string(),
   ELEVENLABS_API_KEY: z.string().optional(),
-  R2_ACCOUNT_ID: z.string(),
-  R2_ACCESS_KEY_ID: z.string(),
-  R2_SECRET_ACCESS_KEY: z.string(),
-  R2_BUCKET_NAME: z.string(),
+  // R2 is only used by the API and worker — optional so the MCP server can start without storage credentials
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET_NAME: z.string().optional(),
 })
 
 const result = schema.safeParse(process.env)
