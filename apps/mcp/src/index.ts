@@ -75,10 +75,6 @@ if (PORT) {
     return true
   }
 
-  const server = createMCPServer()
-  const httpTransport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
-  await server.connect(httpTransport)
-
   const httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
     const url = req.url ?? ''
     const method = req.method ?? 'GET'
@@ -91,12 +87,33 @@ if (PORT) {
 
     if (url === '/' || url === '/mcp' || url.startsWith('/mcp?')) {
       if (!checkAuth(req, res)) return
-      httpTransport.handleRequest(req, res).catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err)
-        console.error('MCP HTTP transport error:', err)
-        if (!res.headersSent) {
-          res.writeHead(500, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ error: message }))
+
+      const chunks: Buffer[] = []
+      req.on('data', (chunk: Buffer) => chunks.push(chunk))
+      req.on('end', async () => {
+        let body: unknown
+        try {
+          body = JSON.parse(Buffer.concat(chunks).toString())
+        } catch {
+          body = undefined
+        }
+
+        const server = createMCPServer()
+        const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
+        try {
+          await server.connect(transport)
+          await transport.handleRequest(req, res, body)
+          res.on('close', () => {
+            transport.close()
+            server.close()
+          })
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err)
+          console.error('MCP HTTP transport error:', err)
+          if (!res.headersSent) {
+            res.writeHead(500, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ error: message }))
+          }
         }
       })
       return
