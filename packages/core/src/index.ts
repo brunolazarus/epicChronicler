@@ -2,7 +2,7 @@ export { env } from './environment.js'
 
 export { r2, uploadToR2, downloadFromR2, deleteFromR2 } from './r2.js'
 
-export { redis } from './redis.js'
+export { getRedis } from './redis.js'
 
 export { QueueName, JobName } from './queue-names.js'
 export type { QueueName as QueueNameType, JobName as JobNameType } from './queue-names.js'

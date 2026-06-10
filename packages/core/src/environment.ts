@@ -3,7 +3,8 @@ import { z } from 'zod'
 
 const schema = z.object({
   PORT: z.coerce.number().default(3000),
-  REDIS_URL: z.string().default('redis://localhost:6379'),
+  // Redis is only used by the API and worker — optional so the MCP server can start without it
+  REDIS_URL: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string(),
   GROQ_API_KEY: z.string(),

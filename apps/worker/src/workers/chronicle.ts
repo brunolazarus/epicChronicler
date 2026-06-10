@@ -1,6 +1,6 @@
 import { Worker } from 'bullmq'
 import { randomUUID } from 'crypto'
-import { redis, uploadToR2, generateChronicle, generateTTS, getFlavour, QueueName } from '@chronicler/core'
+import { getRedis, uploadToR2, generateChronicle, generateTTS, getFlavour, QueueName } from '@chronicler/core'
 import type { ChronicleJobData, ChronicleJobResult, JobNameType } from '@chronicler/core'
 
 export function createChronicleWorker() {
@@ -39,6 +39,6 @@ export function createChronicleWorker() {
 
       return { text, audioKey, llmMs, ttsMs, totalMs, inputTokens, outputTokens, cacheReadTokens }
     },
-    { connection: redis, concurrency: 2 },
+    { connection: getRedis(), concurrency: 2 },
   )
 }

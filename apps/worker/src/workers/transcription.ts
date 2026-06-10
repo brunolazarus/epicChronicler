@@ -1,5 +1,5 @@
 import { Worker } from 'bullmq'
-import { redis, downloadFromR2, deleteFromR2, transcribeAudio, QueueName } from '@chronicler/core'
+import { getRedis, downloadFromR2, deleteFromR2, transcribeAudio, QueueName } from '@chronicler/core'
 import type { TranscriptionJobData, TranscriptionJobResult, JobNameType } from '@chronicler/core'
 
 export function createTranscriptionWorker() {
@@ -23,6 +23,6 @@ export function createTranscriptionWorker() {
 
       return { transcript, transcriptionMs }
     },
-    { connection: redis, concurrency: 3 },
+    { connection: getRedis(), concurrency: 3 },
   )
 }
