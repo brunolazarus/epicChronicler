@@ -25,11 +25,91 @@ Multiple members can record their version of the same event — their transcript
 
 ---
 
+## MCP Server
+
+Chronicler exposes its AI pipeline as a **Model Context Protocol (MCP) server**, so AI assistants like Claude Desktop or Cursor can transcribe voice recordings and generate chronicles directly from a conversation.
+
+### Install via Smithery
+
+The easiest way to add Chronicler to any MCP-compatible client:
+
+1. Go to [smithery.ai](https://smithery.ai) and search for **chronicler-mcp**
+2. Click **Install** next to your client (Claude Desktop, Cursor, etc.)
+3. Enter your API keys when prompted:
+   - `OPENROUTER_API_KEY` — get one at [openrouter.ai](https://openrouter.ai)
+   - `GROQ_API_KEY` — get one at [console.groq.com](https://console.groq.com)
+4. Done — the three tools below are now available in your AI assistant
+
+### Manual setup — Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "chronicler": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://<your-railway-url>/mcp"],
+      "env": {
+        "MCP_REMOTE_HEADER_Authorization": "Bearer <your-mcp-api-key>"
+      }
+    }
+  }
+}
+```
+
+### Manual setup — Cursor
+
+Add to `.cursor/mcp.json` in your project (or `~/.cursor/mcp.json` globally):
+
+```json
+{
+  "mcpServers": {
+    "chronicler": {
+      "url": "https://<your-railway-url>/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-mcp-api-key>"
+      }
+    }
+  }
+}
+```
+
+### Available tools
+
+| Tool | What it does |
+|---|---|
+| `voice_to_chronicle` | Full pipeline in one call — transcribes audio, rewrites it in flavour, returns text + MP3 |
+| `transcribe_voice` | Transcribes a base64-encoded audio file to text via Groq Whisper |
+| `generate_chronicle` | Rewrites one or more transcripts into a narrated chronicle + MP3 audio |
+
+All tools accept audio as a **base64-encoded string**. The `flavour` parameter accepts `medieval`, `sports`, `nature`, or `fantasy`.
+
+### Self-hosting on Railway
+
+The MCP server is deployable to Railway with a single click:
+
+1. Fork this repo and connect it to a new Railway project
+2. Set the following environment variables in the Railway dashboard:
+
+| Variable | Required | Description |
+|---|---|---|
+| `OPENROUTER_API_KEY` | Yes | LLM + TTS via OpenRouter |
+| `GROQ_API_KEY` | Yes | Transcription via Groq Whisper |
+| `MCP_API_KEY` | Yes | Bearer token protecting the `/mcp` endpoint |
+| `PORT` | No | Defaults to `3000` |
+
+3. Railway builds from the `Dockerfile` at the repo root and deploys the MCP server on port 3000
+4. The health check endpoint is `GET /` — Railway uses this to confirm the service is up
+
+---
+
 ## Status
 
 | Phase | Description | Status |
 |---|---|---|
 | Phase 0 | AI pipeline spike — validate transcription → LLM → TTS end to end | ✅ Complete |
+| Phase 0.5 | MCP server — expose pipeline as tools for AI assistants | ✅ Complete |
 | Phase 1 | Full backend — auth, groups, events, recordings, chronicles API | 🔄 Next |
 | Phase 2 | Mobile foundation — Expo app with auth and navigation | Planned |
 | Phase 3 | Recording loop — native audio capture and upload | Planned |
@@ -50,8 +130,10 @@ Multiple members can record their version of the same event — their transcript
 | Transcription | Groq (Whisper large v3 turbo) |
 | LLM | Claude Sonnet via OpenRouter |
 | TTS | Kokoro 82M via OpenRouter |
+| MCP server | `@modelcontextprotocol/sdk` — stdio + HTTP transport |
+| Deployment | Railway (Docker) |
 
-Each AI provider sits behind an interface — swapping implementations is a one-line change in the relevant `index.ts`.
+Each AI provider sits behind an interface — swapping implementations is a one-line change. TTS and LLM models are managed via a registry in `packages/core` so alternatives can be evaluated without touching tool logic.
 
 ---
 
@@ -75,16 +157,22 @@ pnpm dev:all
 
 Open `http://localhost:3000` for the Phase 0 test rig — upload an audio file and run the full pipeline in the browser.
 
+To run the MCP server locally:
+
+```bash
+pnpm mcp
+```
+
 **Required environment variables:**
 
 | Variable | What it's for |
 |---|---|
 | `OPENROUTER_API_KEY` | LLM (Claude) + TTS (Kokoro) |
 | `GROQ_API_KEY` | Transcription via Whisper |
-| `R2_ACCOUNT_ID` | Cloudflare R2 storage |
-| `R2_ACCESS_KEY_ID` | Cloudflare R2 storage |
-| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 storage |
-| `R2_BUCKET_NAME` | Cloudflare R2 storage |
+| `R2_ACCOUNT_ID` | Cloudflare R2 storage (API + worker only) |
+| `R2_ACCESS_KEY_ID` | Cloudflare R2 storage (API + worker only) |
+| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 storage (API + worker only) |
+| `R2_BUCKET_NAME` | Cloudflare R2 storage (API + worker only) |
 
 API documentation is available at `http://localhost:3000/doc` (Scalar UI, auto-generated from route schemas).
 
@@ -93,19 +181,24 @@ API documentation is available at `http://localhost:3000/doc` (Scalar UI, auto-g
 ## Project structure
 
 ```
-apps/api/src/
-├── environment.ts           # env var validation — crashes clearly if anything is missing
-├── lib/
-│   ├── r2.ts                # Cloudflare R2 upload / download / delete
-│   ├── redis.ts             # ioredis connection shared by queues and workers
-│   ├── transcription/       # TranscriptionProvider interface + Groq implementation
-│   ├── llm/                 # LLMProvider interface + OpenRouter implementation
-│   └── tts/                 # TTSProvider interface + OpenRouter/Kokoro implementation
-├── flavours/                # system prompts for each narrative style
-├── queues/                  # BullMQ typed queues (transcription + chronicle)
-├── workers/                 # job processors — transcription.ts and chronicle.ts
-├── routes/pipeline.ts       # REST API with OpenAPI schemas
-└── index.ts                 # Hono server entry point
+apps/
+├── api/          # Hono REST API — routes, queues, Phase 0 test rig
+├── worker/       # BullMQ job processors — transcription and chronicle jobs
+└── mcp/          # MCP server — exposes pipeline as tools over stdio and HTTP
+
+packages/
+└── core/         # Shared library — env validation, AI providers, R2, Redis, flavours
+    └── src/
+        ├── environment.ts        # Zod env schema — crashes clearly if anything is missing
+        ├── r2.ts                 # Cloudflare R2 upload / download / delete
+        ├── redis.ts              # ioredis connection shared by queues and workers
+        ├── transcription/        # TranscriptionProvider interface + Groq implementation
+        ├── llm/                  # LLMProvider interface + OpenRouter implementation
+        │   └── openrouter-models.ts  # LLM model registry (5 models, swappable)
+        └── tts/                  # TTSProvider interface + OpenRouter/Kokoro implementation
+            └── openrouter-models.ts  # TTS model registry (3 models, swappable)
+
+scripts/          # Dev utilities — benchmarking, one-off tools
 ```
 
 ---
@@ -118,6 +211,9 @@ Full reasoning behind every architectural choice is in [`docs/SDD.md`](docs/SDD.
 - **Raw audio is deleted after transcription** — voice data under GDPR/CCPA is a liability; the transcript is what matters
 - **AI jobs run in a queue, not inline** — transcription + LLM + TTS takes 5–20s; BullMQ keeps the HTTP layer fast and adds retry logic
 - **Provider abstraction layer** — each AI capability has an interface; concrete providers are swappable without touching the rest of the codebase
+- **Model registries in `packages/core`** — TTS and LLM models are named entries in a registry; switching providers or models is a one-line change, no tool logic to touch
+- **R2 is optional in env** — the MCP server doesn't use storage, so R2 credentials are not required for it to start
+- **MCP runs both transports** — stdio for local clients (Claude Desktop direct), HTTP for remote clients (Railway, Smithery)
 
 ---
 
