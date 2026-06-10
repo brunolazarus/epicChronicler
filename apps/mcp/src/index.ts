@@ -74,14 +74,15 @@ if (PORT) {
 
   const httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
     const url = req.url ?? ''
+    const method = req.method ?? 'GET'
 
-    if (url === '/' || url === '/health') {
+    if ((url === '/' || url === '/health') && method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ status: 'ok' }))
       return
     }
 
-    if (url === '/mcp' || url.startsWith('/mcp?')) {
+    if (url === '/' || url === '/mcp' || url.startsWith('/mcp?')) {
       if (!checkAuth(req, res)) return
       httpTransport.handleRequest(req, res).catch((err: unknown) => {
         console.error('MCP HTTP transport error:', err)
