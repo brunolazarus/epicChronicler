@@ -85,10 +85,11 @@ if (PORT) {
     if (url === '/' || url === '/mcp' || url.startsWith('/mcp?')) {
       if (!checkAuth(req, res)) return
       httpTransport.handleRequest(req, res).catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err)
         console.error('MCP HTTP transport error:', err)
         if (!res.headersSent) {
           res.writeHead(500, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ error: 'Internal server error' }))
+          res.end(JSON.stringify({ error: message }))
         }
       })
       return
