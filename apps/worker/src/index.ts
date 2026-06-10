@@ -1,4 +1,4 @@
-import "./environment.js"; // validate env before anything else
+import "@chronicler/core"; // validate env before anything else
 import { createTranscriptionWorker } from "./workers/transcription.js";
 import { createChronicleWorker } from "./workers/chronicle.js";
 

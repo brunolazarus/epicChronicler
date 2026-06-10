@@ -1,0 +1,19 @@
+{
+  "name": "@chronicler/scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench-tts": "tsx bench-tts.ts",
+    "bench-llm": "tsx bench-llm.ts"
+  },
+  "dependencies": {
+    "@chronicler/core": "workspace:*",
+    "dotenv": "^16.4.0",
+    "openai": "^4.55.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.15.0",
+    "typescript": "^5.5.0"
+  }
+}

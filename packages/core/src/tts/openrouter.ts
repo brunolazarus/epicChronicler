@@ -1,31 +1,29 @@
 import OpenAI from 'openai'
-import { env } from '../../environment.js'
+import { env } from '../environment.js'
 import type { TTSProvider, TTSResult } from './types.js'
-
-// Kokoro 82M voice names (language_gender_name format)
-const FLAVOUR_VOICES: Record<string, string> = {
-  medieval: 'bm_george', // British male — authoritative
-  sports:   'am_adam',   // American male — energetic
-  nature:   'bf_emma',   // British female — warm, gentle
-  fantasy:  'af_bella',  // American female — expressive
-}
+import { OPENROUTER_TTS_MODELS, DEFAULT_TTS_MODEL } from './openrouter-models.js'
+import type { OpenRouterTTSModelKey } from './openrouter-models.js'
 
 export class OpenRouterTTSProvider implements TTSProvider {
   private client: OpenAI
+  private modelKey: OpenRouterTTSModelKey
 
-  constructor() {
+  constructor(modelKey: OpenRouterTTSModelKey = DEFAULT_TTS_MODEL) {
     this.client = new OpenAI({
       apiKey: env.OPENROUTER_API_KEY,
       baseURL: 'https://openrouter.ai/api/v1',
     })
+    this.modelKey = modelKey
   }
 
   async generateSpeech(text: string, flavour: string): Promise<TTSResult> {
     const start = Date.now()
+    const model = OPENROUTER_TTS_MODELS[this.modelKey]
+    const voice = (model.voices as Record<string, string>)[flavour] ?? model.defaultVoice
 
     const response = await this.client.audio.speech.create({
-      model: 'hexgrad/kokoro-82m',
-      voice: (FLAVOUR_VOICES[flavour] ?? 'bm_george') as Parameters<typeof this.client.audio.speech.create>[0]['voice'],
+      model: model.id,
+      voice: voice as Parameters<typeof this.client.audio.speech.create>[0]['voice'],
       input: text,
       response_format: 'mp3',
     })

@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { env } from '../../environment.js'
+import { env } from '../environment.js'
 import type { LLMProvider, LLMResult } from './types.js'
 
 export class OpenRouterLLMProvider implements LLMProvider {

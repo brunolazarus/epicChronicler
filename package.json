@@ -3,8 +3,11 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter api dev",
-    "worker": "pnpm --filter api worker",
-    "dev:all": "concurrently -n api,worker -c blue,green \"pnpm dev\" \"pnpm worker\""
+    "worker": "pnpm --filter worker dev",
+    "mcp": "pnpm --filter mcp dev",
+    "dev:all": "concurrently -n core,api,worker -c cyan,blue,green \"pnpm --filter @chronicler/core dev\" \"pnpm --filter api dev\" \"pnpm --filter worker dev\"",
+    "dev:mcp": "concurrently -n core,mcp -c cyan,magenta \"pnpm --filter @chronicler/core dev\" \"pnpm --filter mcp dev\"",
+    "build": "pnpm --filter @chronicler/core build && pnpm --filter api build && pnpm --filter worker build && pnpm --filter mcp build"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"

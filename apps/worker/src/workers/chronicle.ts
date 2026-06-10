@@ -1,15 +1,10 @@
 import { Worker } from 'bullmq'
 import { randomUUID } from 'crypto'
-import { redis } from '../lib/redis.js'
-import { uploadToR2 } from '../lib/r2.js'
-import { generateChronicle } from '../lib/llm/index.js'
-import { generateTTS } from '../lib/tts/index.js'
-import { getFlavour } from '../flavours/index.js'
-import type { ChronicleJobData, ChronicleJobResult } from '../queues/index.js'
-import { QueueName, type JobName } from '../queues/names.js'
+import { redis, uploadToR2, generateChronicle, generateTTS, getFlavour, QueueName } from '@chronicler/core'
+import type { ChronicleJobData, ChronicleJobResult, JobNameType } from '@chronicler/core'
 
 export function createChronicleWorker() {
-  return new Worker<ChronicleJobData, ChronicleJobResult, JobName>(
+  return new Worker<ChronicleJobData, ChronicleJobResult, JobNameType>(
     QueueName.CHRONICLE,
     async (job) => {
       const { transcripts, flavour } = job.data

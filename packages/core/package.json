@@ -1,0 +1,28 @@
+{
+  "name": "@chronicler/core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --out-dir dist",
+    "dev": "tsup src/index.ts --format esm --dts --out-dir dist --watch"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@elevenlabs/elevenlabs-js": "^2.51.0",
+    "dotenv": "^16.4.0",
+    "ioredis": "5.10.1",
+    "openai": "^4.55.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0"
+  }
+}

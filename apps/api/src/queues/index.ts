@@ -1,34 +1,6 @@
 import { Queue } from 'bullmq'
-import { redis } from '../lib/redis.js'
-import { QueueName, type JobName } from './names.js'
-
-export interface TranscriptionJobData {
-  audioKey: string
-  filename: string
-  uploadedAt: string
-}
-
-export interface TranscriptionJobResult {
-  transcript: string
-  transcriptionMs: number
-}
-
-export interface ChronicleJobData {
-  transcripts: Array<{ speaker: string; text: string }>
-  flavour: string
-  requestedAt: string
-}
-
-export interface ChronicleJobResult {
-  text: string
-  audioKey: string
-  llmMs: number
-  ttsMs: number
-  totalMs: number
-  inputTokens: number
-  outputTokens: number
-  cacheReadTokens: number
-}
+import { redis, QueueName } from '@chronicler/core'
+import type { JobName, TranscriptionJobData, TranscriptionJobResult, ChronicleJobData, ChronicleJobResult } from '@chronicler/core'
 
 export const transcriptionQueue = new Queue<TranscriptionJobData, TranscriptionJobResult, JobName>(
   QueueName.TRANSCRIPTION,

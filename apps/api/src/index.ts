@@ -1,10 +1,10 @@
-import "./environment.js"; // validate env before anything else
+import "@chronicler/core"; // validate env before anything else
 import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { env } from "./environment.js";
+import { env } from "@chronicler/core";
 import pipelineRoutes from "./routes/pipeline.js";
 
 const app = new OpenAPIHono();

@@ -1,12 +1,9 @@
 import { Worker } from 'bullmq'
-import { redis } from '../lib/redis.js'
-import { downloadFromR2, deleteFromR2 } from '../lib/r2.js'
-import { transcribeAudio } from '../lib/transcription/index.js'
-import type { TranscriptionJobData, TranscriptionJobResult } from '../queues/index.js'
-import { QueueName, type JobName } from '../queues/names.js'
+import { redis, downloadFromR2, deleteFromR2, transcribeAudio, QueueName } from '@chronicler/core'
+import type { TranscriptionJobData, TranscriptionJobResult, JobNameType } from '@chronicler/core'
 
 export function createTranscriptionWorker() {
-  return new Worker<TranscriptionJobData, TranscriptionJobResult, JobName>(
+  return new Worker<TranscriptionJobData, TranscriptionJobResult, JobNameType>(
     QueueName.TRANSCRIPTION,
     async (job) => {
       const { audioKey, filename } = job.data

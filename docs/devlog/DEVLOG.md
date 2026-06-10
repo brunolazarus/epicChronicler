@@ -17,13 +17,15 @@ technical and non-technical audiences.
 | 1–3 | Pre-build + Phase 0 kickoff | Idea + SDD + tech stack + Phase 0 start | **Written** → [2026-06-03-kickoff.md](2026-06-03-kickoff.md) |
 | 4 | Phase 0 | Why I built a throwaway web page before the app | Draft |
 | 5 | Phase 0 | What the AI pipeline actually cost and how fast it ran | Draft |
-| 6 | Phase 1 | Building a production API before the frontend | Draft |
-| 7 | Phase 1 | Supabase, BullMQ, and the architecture of async AI jobs | Draft |
-| 8 | Phase 2 | First screen in Expo — the gap between design and device | Draft |
-| 9 | Phase 3 | Native audio on mobile is harder than I expected | Draft |
-| 10 | Phase 4 | The moment the AI told the story back to me | Draft |
-| 11 | Phase 5 | Submitting to the App Store — what I didn't know I didn't know | Draft |
-| 12 | Post-launch | What I'd do differently | Draft |
+| 6 | Phase 1 | MCP server — making the pipeline callable from any AI assistant | **Decision log** → [2026-06-09-mcp.md](2026-06-09-mcp.md) |
+| 7 | Phase 1 | The tool separation tradeoff: atomic operations vs. convenience wrappers | Draft |
+| 8 | Phase 2 | Building a production API before the frontend | Draft |
+| 9 | Phase 2 | Supabase, BullMQ, and the architecture of async AI jobs | Draft |
+| 10 | Phase 3 | First screen in Expo — the gap between design and device | Draft |
+| 11 | Phase 4 | Native audio on mobile is harder than I expected | Draft |
+| 12 | Phase 5 | The moment the AI told the story back to me | Draft |
+| 13 | Phase 6 | Submitting to the App Store — what I didn't know I didn't know | Draft |
+| 14 | Post-launch | What I'd do differently | Draft |
 
 ---
 

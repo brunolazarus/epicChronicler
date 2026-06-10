@@ -1,5 +1,5 @@
 import OpenAI, { toFile } from 'openai'
-import { env } from '../../environment.js'
+import { env } from '../environment.js'
 import type { TranscriptionProvider, TranscriptionResult } from './types.js'
 
 const MIME_TYPES: Record<string, string> = {
