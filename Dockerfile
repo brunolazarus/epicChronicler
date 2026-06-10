@@ -1,5 +1,5 @@
 FROM node:22-slim AS base
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.9.0 --activate
 
 # ── deps: install all workspace dependencies ──────────────────────────────────
 FROM base AS deps
@@ -37,4 +37,4 @@ COPY --from=deps /app/node_modules ./node_modules
 
 EXPOSE 3000
 
-CMD ["pnpm", "--filter", "mcp", "exec", "tsx", "src/index.ts"]
+CMD ["pnpm", "--filter", "chronicler-mcp", "exec", "tsx", "src/index.ts"]
