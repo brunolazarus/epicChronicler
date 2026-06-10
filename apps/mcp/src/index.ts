@@ -59,7 +59,8 @@ if (PORT) {
   function checkAuth(req: IncomingMessage, res: ServerResponse): boolean {
     if (!MCP_API_KEY) return true
     const authHeader = req.headers['authorization'] ?? ''
-    if (authHeader !== `Bearer ${MCP_API_KEY}`) {
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader
+    if (token !== MCP_API_KEY) {
       res.writeHead(401, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ error: 'Unauthorized' }))
       return false
