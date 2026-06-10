@@ -11,5 +11,8 @@
   },
   "devDependencies": {
     "concurrently": "^10.0.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
   }
 }
