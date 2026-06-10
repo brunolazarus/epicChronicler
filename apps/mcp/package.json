@@ -1,5 +1,12 @@
 {
-  "name": "mcp",
+  "name": "chronicler-mcp",
+  "description": "MCP server that transcribes voice recordings and retells them as narrated chronicles in medieval, sports, nature, or fantasy style",
+  "version": "0.1.0",
+  "author": "Bruno Lazaro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brunolazaro/epicChronicler"
+  },
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +16,7 @@
   },
   "dependencies": {
     "@chronicler/core": "workspace:*",
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "^1.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

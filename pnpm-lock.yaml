@@ -55,7 +55,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
       '@modelcontextprotocol/sdk':
-        specifier: ^1.0.0
+        specifier: ^1.1.0
         version: 1.29.0(zod@4.4.3)
     devDependencies:
       '@types/node':

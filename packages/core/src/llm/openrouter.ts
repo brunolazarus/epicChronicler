@@ -1,22 +1,27 @@
 import OpenAI from 'openai'
 import { env } from '../environment.js'
 import type { LLMProvider, LLMResult } from './types.js'
+import { OPENROUTER_LLM_MODELS, DEFAULT_LLM_MODEL } from './openrouter-models.js'
+import type { OpenRouterLLMModelKey } from './openrouter-models.js'
 
 export class OpenRouterLLMProvider implements LLMProvider {
   private client: OpenAI
+  private modelKey: OpenRouterLLMModelKey
 
-  constructor() {
+  constructor(modelKey: OpenRouterLLMModelKey = DEFAULT_LLM_MODEL) {
     this.client = new OpenAI({
       apiKey: env.OPENROUTER_API_KEY,
       baseURL: 'https://openrouter.ai/api/v1',
     })
+    this.modelKey = modelKey
   }
 
   async generateChronicle(transcripts: string, systemPrompt: string): Promise<LLMResult> {
     const start = Date.now()
+    const model = OPENROUTER_LLM_MODELS[this.modelKey]
 
     const response = await this.client.chat.completions.create({
-      model: 'anthropic/claude-sonnet-4-5',
+      model: model.id,
       max_tokens: 1024,
       messages: [
         { role: 'system', content: systemPrompt },
