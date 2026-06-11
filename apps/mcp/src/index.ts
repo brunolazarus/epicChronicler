@@ -88,6 +88,16 @@ if (PORT) {
     if (url === '/' || url === '/mcp' || url.startsWith('/mcp?')) {
       if (!checkAuth(req, res)) return
 
+      // Smithery scanner sends Accept: application/json only; SDK requires both.
+      // Hono (used internally by the transport) reads rawHeaders, not headers.
+      const rawHeaders = req.rawHeaders as string[]
+      const acceptIdx = rawHeaders.findIndex(h => h.toLowerCase() === 'accept')
+      if (acceptIdx === -1) {
+        rawHeaders.push('Accept', 'application/json, text/event-stream')
+      } else if (!rawHeaders[acceptIdx + 1]?.includes('text/event-stream')) {
+        rawHeaders[acceptIdx + 1] = 'application/json, text/event-stream'
+      }
+
       const chunks: Buffer[] = []
       req.on('data', (chunk: Buffer) => chunks.push(chunk))
       req.on('end', async () => {
@@ -99,7 +109,7 @@ if (PORT) {
         }
 
         const server = createMCPServer()
-        const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
+        const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
         try {
           await server.connect(transport)
           await transport.handleRequest(req, res, body)
