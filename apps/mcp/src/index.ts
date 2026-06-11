@@ -85,6 +85,15 @@ if (PORT) {
       return
     }
 
+    if (url === '/.well-known/mcp/server-card.json' && method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({
+        serverInfo: { name: 'chronicler', version: '0.1.0' },
+        tools: [voiceToChronicleToolDefinition, transcribeToolDefinition, chronicleToolDefinition],
+      }))
+      return
+    }
+
     if (url === '/' || url === '/mcp' || url.startsWith('/mcp?')) {
       if (!checkAuth(req, res)) return
 
