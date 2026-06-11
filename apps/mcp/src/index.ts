@@ -10,7 +10,7 @@ import { createServer, IncomingMessage, ServerResponse } from 'node:http'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js'
+import { ListToolsRequestSchema, CallToolRequestSchema, ListResourcesRequestSchema, ListPromptsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 import { transcribeToolDefinition, handleTranscribe } from './tools/transcribe.js'
 import { chronicleToolDefinition, handleChronicle } from './tools/chronicle.js'
 import { voiceToChronicleToolDefinition, handleVoiceToChronicle } from './tools/voice-to-chronicle.js'
@@ -24,6 +24,9 @@ function createMCPServer() {
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [voiceToChronicleToolDefinition, transcribeToolDefinition, chronicleToolDefinition],
   }))
+
+  server.setRequestHandler(ListResourcesRequestSchema, async () => ({ resources: [] }))
+  server.setRequestHandler(ListPromptsRequestSchema, async () => ({ prompts: [] }))
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params
