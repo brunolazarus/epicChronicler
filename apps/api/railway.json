@@ -1,0 +1,14 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile.api"
+  },
+  "deploy": {
+    "startCommand": "sh -c \"pnpm --filter api exec tsx src/index.ts & pnpm --filter worker exec tsx src/index.ts & wait\"",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  }
+}
