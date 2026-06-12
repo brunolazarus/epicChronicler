@@ -29,18 +29,14 @@ Multiple members can record their version of the same event — their transcript
 
 Chronicler exposes its AI pipeline as a **Model Context Protocol (MCP) server**, so AI assistants like Claude Desktop or Cursor can transcribe voice recordings and generate chronicles directly from a conversation.
 
-### Install via Smithery
+### Claude CLI (hosted)
 
-The easiest way to add Chronicler to any MCP-compatible client:
+```bash
+claude mcp add --transport http chronicler "https://chronicler-mcp-production.up.railway.app" \
+  --header "Authorization: Bearer <mcp-api-key>"
+```
 
-1. Go to [smithery.ai](https://smithery.ai) and search for **chronicler-mcp**
-2. Click **Install** next to your client (Claude Desktop, Cursor, etc.)
-3. Enter your API keys when prompted:
-   - `OPENROUTER_API_KEY` — get one at [openrouter.ai](https://openrouter.ai)
-   - `GROQ_API_KEY` — get one at [console.groq.com](https://console.groq.com)
-4. Done — the three tools below are now available in your AI assistant
-
-### Manual setup — Claude Desktop
+### Claude Desktop (hosted)
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
@@ -213,7 +209,7 @@ Full reasoning behind every architectural choice is in [`docs/SDD.md`](docs/SDD.
 - **Provider abstraction layer** — each AI capability has an interface; concrete providers are swappable without touching the rest of the codebase
 - **Model registries in `packages/core`** — TTS and LLM models are named entries in a registry; switching providers or models is a one-line change, no tool logic to touch
 - **R2 is optional in env** — the MCP server doesn't use storage, so R2 credentials are not required for it to start
-- **MCP runs both transports** — stdio for local clients (Claude Desktop direct), HTTP for remote clients (Railway, Smithery)
+- **MCP runs both transports** — stdio for local clients (Claude Desktop direct), HTTP for remote clients (Railway)
 
 ---
 

@@ -144,59 +144,101 @@ const TEST_RIG_HTML = /* html */ `<!DOCTYPE html>
       padding: 1rem;
     }
     audio { width: 100%; margin-top: 0.75rem; }
+    .record-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      padding: 0.65rem 1.4rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0;
+    }
+    .record-btn:hover { background: #b91c1c; }
+    .record-btn.recording { background: #1a1a1a; border: 1px solid #dc2626; color: #dc2626; }
+    .rec-dot {
+      width: 10px; height: 10px;
+      background: #dc2626;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+    }
+    .upload-alt {
+      font-size: 0.75rem;
+      color: #444;
+      margin-top: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .upload-alt label { color: #555; cursor: pointer; text-decoration: underline; }
+    .upload-alt label:hover { color: #888; }
   </style>
 </head>
 <body>
   <h1>Chronicler</h1>
-  <p class="subtitle">Phase 0 — AI Pipeline Test Rig</p>
+  <p class="subtitle">Record a voice story. Hear it told back as a legend.</p>
 
   <!-- Step 1 -->
   <div class="card active" id="card-upload">
-    <div class="card-label">Step 1 — Upload Audio</div>
-    <input type="file" id="audio-file" accept="audio/*">
-    <button id="btn-upload" onclick="uploadAudio()">Upload &amp; Transcribe</button>
+    <div class="card-label">Step 1 — Your story</div>
+    <button class="record-btn" id="btn-record" onclick="toggleRecording()">
+      <span class="rec-dot" id="rec-dot" style="display:none"></span>
+      <span id="btn-record-label">Start Recording</span>
+      <span id="rec-timer" style="display:none; font-variant-numeric: tabular-nums;">0:00</span>
+    </button>
+    <div class="upload-alt">
+      <span>or</span>
+      <label for="audio-file">upload a file</label>
+      <input type="file" id="audio-file" accept="audio/*" style="display:none" onchange="onFileSelected()">
+    </div>
     <div class="bar"><div class="bar-fill" id="bar-transcription"></div></div>
-    <div class="status" id="st-upload">Select an audio file to begin.</div>
+    <div class="status" id="st-upload">Tap record or upload an audio file.</div>
   </div>
 
   <!-- Step 2 -->
   <div class="card" id="card-transcript">
-    <div class="card-label">Step 2 — Transcript</div>
-    <textarea id="transcript" rows="5" placeholder="Transcript will appear here…" oninput="updateGenerateBtn()"></textarea>
-    <div class="metrics" id="metrics-transcription" style="display:none">
-      <div class="metric">
-        <div class="metric-val" id="m-transcription-ms">—</div>
-        <div class="metric-lbl">Whisper ms</div>
-      </div>
-    </div>
+    <div class="card-label">Step 2 — What you said</div>
+    <textarea id="transcript" rows="5" placeholder="Your words will appear here…" oninput="updateGenerateBtn()"></textarea>
   </div>
 
   <!-- Step 3 -->
   <div class="card" id="card-generate">
-    <div class="card-label">Step 3 — Flavour &amp; Generate</div>
+    <div class="card-label">Step 3 — Choose a voice</div>
     <div class="flavours" id="flavour-list">Loading…</div>
-    <button id="btn-generate" onclick="generateChronicle()" disabled>Generate Chronicle</button>
+    <button id="btn-generate" onclick="generateChronicle()" disabled>Tell the story</button>
     <div class="bar"><div class="bar-fill" id="bar-chronicle"></div></div>
-    <div class="status" id="st-generate">Choose a flavour above.</div>
+    <div class="status" id="st-generate">Choose a voice above.</div>
   </div>
 
   <!-- Step 4 -->
   <div class="card" id="card-result">
-    <div class="card-label">Step 4 — Chronicle</div>
-    <div class="chronicle" id="chronicle-text">Chronicle will appear here…</div>
+    <div class="card-label">Step 4 — The chronicle</div>
+    <div class="chronicle" id="chronicle-text">Your chronicle will appear here…</div>
     <audio id="tts-player" controls style="display:none"></audio>
-    <div class="metrics" id="metrics-chronicle" style="display:none">
-      <div class="metric"><div class="metric-val" id="m-llm-ms">—</div><div class="metric-lbl">LLM ms</div></div>
-      <div class="metric"><div class="metric-val" id="m-tts-ms">—</div><div class="metric-lbl">TTS ms</div></div>
-      <div class="metric"><div class="metric-val" id="m-total-ms">—</div><div class="metric-lbl">Total ms</div></div>
-      <div class="metric"><div class="metric-val" id="m-in-tok">—</div><div class="metric-lbl">In tokens</div></div>
-      <div class="metric"><div class="metric-val" id="m-out-tok">—</div><div class="metric-lbl">Out tokens</div></div>
-      <div class="metric"><div class="metric-val" id="m-cache-tok">—</div><div class="metric-lbl">Cache hit</div></div>
-    </div>
   </div>
+
+  <!-- MCP callout -->
+  <p style="margin-top: 2rem; font-size: 0.75rem; color: #333; text-align: center;">
+    Developer? Add Chronicler to Claude or Cursor as an
+    <a href="https://chronicler-mcp-production.up.railway.app" style="color: #3b82f6; text-decoration: none;">MCP server</a>
+    — see the <a href="https://github.com/brunolazaro/epicChronicler" style="color: #3b82f6; text-decoration: none;">README</a>.
+  </p>
 
   <script>
     let selectedFlavour = null
+    let mediaRecorder = null
+    let recordedChunks = []
+    let recordedFile = null
+    let timerInterval = null
+    let recordingSeconds = 0
 
     fetch('/pipeline/flavours')
       .then(r => r.json())
@@ -243,11 +285,90 @@ const TEST_RIG_HTML = /* html */ `<!DOCTYPE html>
       })
     }
 
-    async function uploadAudio() {
+    // ── Recording ──────────────────────────────────────────────────────────────
+
+    async function toggleRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        stopRecording()
+      } else {
+        await startRecording()
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        recordedChunks = []
+        mediaRecorder = new MediaRecorder(stream)
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recordedChunks.push(e.data)
+        }
+
+        mediaRecorder.onstop = () => {
+          stream.getTracks().forEach(t => t.stop())
+          clearInterval(timerInterval)
+          const mimeType = mediaRecorder.mimeType || 'audio/webm'
+          const ext = mimeType.split('/')[1].split(';')[0]
+          const blob = new Blob(recordedChunks, { type: mimeType })
+          recordedFile = new File([blob], \`recording.\${ext}\`, { type: mimeType })
+          setRecordingState('idle')
+          uploadAudio()
+        }
+
+        mediaRecorder.start()
+        recordingSeconds = 0
+        timerInterval = setInterval(() => {
+          recordingSeconds++
+          const m = Math.floor(recordingSeconds / 60)
+          const s = String(recordingSeconds % 60).padStart(2, '0')
+          document.getElementById('rec-timer').textContent = \`\${m}:\${s}\`
+        }, 1000)
+        setRecordingState('recording')
+      } catch {
+        setStatus('st-upload', '✗ Microphone access denied', 'err')
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop()
+    }
+
+    function setRecordingState(state) {
+      const btn = document.getElementById('btn-record')
+      const label = document.getElementById('btn-record-label')
+      const dot = document.getElementById('rec-dot')
+      const timer = document.getElementById('rec-timer')
+      if (state === 'recording') {
+        btn.classList.add('recording')
+        dot.style.display = 'inline-block'
+        timer.style.display = 'inline'
+        label.textContent = 'Stop'
+        setStatus('st-upload', 'Recording…', 'wait')
+      } else {
+        btn.classList.remove('recording')
+        dot.style.display = 'none'
+        timer.style.display = 'none'
+        label.textContent = 'Start Recording'
+      }
+    }
+
+    function onFileSelected() {
       const file = document.getElementById('audio-file').files[0]
+      if (file) {
+        recordedFile = null
+        setStatus('st-upload', \`\${file.name} selected — uploading…\`, 'wait')
+        uploadAudio()
+      }
+    }
+
+    // ── Upload & transcribe ────────────────────────────────────────────────────
+
+    async function uploadAudio() {
+      const file = recordedFile ?? document.getElementById('audio-file').files[0]
       if (!file) return
 
-      document.getElementById('btn-upload').disabled = true
+      document.getElementById('btn-record').disabled = true
       setStatus('st-upload', 'Uploading…', 'wait')
       setBar('bar-transcription', 0)
 
@@ -256,21 +377,19 @@ const TEST_RIG_HTML = /* html */ `<!DOCTYPE html>
 
       const { jobId } = await fetch('/pipeline/upload', { method: 'POST', body: form }).then(r => r.json())
 
-      setStatus('st-upload', 'Transcribing with Whisper…', 'wait')
+      setStatus('st-upload', 'Listening to your story…', 'wait')
 
       try {
         const result = await pollJob(jobId, 'bar-transcription')
         document.getElementById('transcript').value = result.transcript
-        document.getElementById('m-transcription-ms').textContent = result.transcriptionMs + 'ms'
-        document.getElementById('metrics-transcription').style.display = 'grid'
         document.getElementById('card-transcript').className = 'card done'
-        setStatus('st-upload', '✓ Transcription complete', 'ok')
+        setStatus('st-upload', '✓ Got it', 'ok')
         updateGenerateBtn()
       } catch (err) {
         setStatus('st-upload', '✗ ' + err.message, 'err')
         document.getElementById('card-upload').className = 'card error'
       } finally {
-        document.getElementById('btn-upload').disabled = false
+        document.getElementById('btn-record').disabled = false
       }
     }
 
@@ -279,7 +398,7 @@ const TEST_RIG_HTML = /* html */ `<!DOCTYPE html>
       if (!transcript || !selectedFlavour) return
 
       document.getElementById('btn-generate').disabled = true
-      setStatus('st-generate', 'Generating chronicle…', 'wait')
+      setStatus('st-generate', 'Telling the story…', 'wait')
       setBar('bar-chronicle', 0)
 
       const { jobId } = await fetch('/pipeline/generate', {
@@ -294,13 +413,6 @@ const TEST_RIG_HTML = /* html */ `<!DOCTYPE html>
       try {
         const result = await pollJob(jobId, 'bar-chronicle')
         document.getElementById('chronicle-text').textContent = result.text
-        document.getElementById('m-llm-ms').textContent = result.llmMs + 'ms'
-        document.getElementById('m-tts-ms').textContent = result.ttsMs + 'ms'
-        document.getElementById('m-total-ms').textContent = result.totalMs + 'ms'
-        document.getElementById('m-in-tok').textContent = result.inputTokens
-        document.getElementById('m-out-tok').textContent = result.outputTokens
-        document.getElementById('m-cache-tok').textContent = result.cacheReadTokens
-        document.getElementById('metrics-chronicle').style.display = 'grid'
 
         const player = document.getElementById('tts-player')
         player.src = '/pipeline/audio/' + result.audioKey

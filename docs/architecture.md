@@ -9,10 +9,6 @@ flowchart LR
         CU["Cursor"]
     end
 
-    subgraph smithery_box["Smithery"]
-        SM["registry\n+ installer"]
-    end
-
     subgraph railway_box["Railway"]
         MCP["chronicler-mcp\n:3000  /mcp"]
     end
@@ -26,8 +22,6 @@ flowchart LR
         TTS["── TTS ──────────────────\nkokoro-82m  ★\ngpt-audio-mini\ngpt-audio"]
     end
 
-    CD & CU -.->|"discover & install"| SM
-    SM -->|"proxy"| MCP
     CD -->|"HTTP + Bearer"| MCP
     CU -->|"HTTP + Bearer"| MCP
 
