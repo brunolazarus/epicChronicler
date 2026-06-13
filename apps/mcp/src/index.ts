@@ -100,11 +100,19 @@ if (PORT) {
     if (url === '/' || url === '/mcp' || url.startsWith('/mcp?')) {
       if (!checkAuth(req, res)) return
 
+      const chunks: Buffer[] = []
+      await new Promise<void>((resolve) => {
+        req.on('data', (chunk: Buffer) => chunks.push(chunk))
+        req.on('end', () => resolve())
+      })
+      let parsedBody: unknown
+      try { parsedBody = JSON.parse(Buffer.concat(chunks).toString()) } catch { parsedBody = undefined }
+
       const server = createMCPServer()
-      const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
+      const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
       try {
         await server.connect(transport)
-        await transport.handleRequest(req, res)
+        await transport.handleRequest(req, res, parsedBody)
         res.on('close', () => {
           transport.close()
           server.close()
