@@ -78,7 +78,7 @@ if (PORT) {
     return true
   }
 
-  const httpServer = createServer((req: IncomingMessage, res: ServerResponse) => {
+  const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
     const url = req.url ?? ''
     const method = req.method ?? 'GET'
 
@@ -100,7 +100,7 @@ if (PORT) {
     if (url === '/' || url === '/mcp' || url.startsWith('/mcp?')) {
       if (!checkAuth(req, res)) return
 
-const server = createMCPServer()
+      const server = createMCPServer()
       const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
       try {
         await server.connect(transport)
