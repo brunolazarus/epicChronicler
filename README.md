@@ -32,7 +32,7 @@ Chronicler exposes its AI pipeline as a **Model Context Protocol (MCP) server**,
 ### Claude CLI (hosted)
 
 ```bash
-claude mcp add --transport http chronicler "https://chronicler-mcp-production.up.railway.app" \
+claude mcp add --transport http chronicler "https://epicchronicler-production.up.railway.app/mcp" \
   --header "Authorization: Bearer <mcp-api-key>"
 ```
 
@@ -79,7 +79,15 @@ Add to `.cursor/mcp.json` in your project (or `~/.cursor/mcp.json` globally):
 | `transcribe_voice` | Transcribes a base64-encoded audio file to text via Groq Whisper |
 | `generate_chronicle` | Rewrites one or more transcripts into a narrated chronicle + MP3 audio |
 
-All tools accept audio as a **base64-encoded string**. The `flavour` parameter accepts `medieval`, `sports`, `nature`, or `fantasy`.
+Audio can be provided three ways — use whichever fits your transport:
+
+| Parameter | When to use |
+|---|---|
+| `audio_path` | Absolute local file path. Works with stdio transport (Claude Desktop, CLI direct). |
+| `audio_url` | URL the server fetches. Works with HTTP transport (Railway, Smithery). |
+| `audio_base64` | Base64-encoded content inline. Works anywhere but limited to small files (<1MB). |
+
+When using `audio_path`, `filename` is inferred from the path and can be omitted. The `flavour` parameter accepts `medieval`, `sports`, `nature`, or `fantasy`.
 
 ### Self-hosting on Railway
 

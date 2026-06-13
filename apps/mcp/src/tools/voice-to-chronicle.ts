@@ -9,13 +9,21 @@ export const voiceToChronicleToolDefinition = {
   inputSchema: {
     type: 'object' as const,
     properties: {
+      audio_path: {
+        type: 'string',
+        description: 'Absolute path to the audio file on the local filesystem. Only works with stdio transport.',
+      },
+      audio_url: {
+        type: 'string',
+        description: 'URL of an audio file the server will fetch. Use for remote/HTTP transport.',
+      },
       audio_base64: {
         type: 'string',
-        description: 'Base64-encoded audio file content',
+        description: 'Base64-encoded audio file content. Suitable only for small files (<1MB).',
       },
       filename: {
         type: 'string',
-        description: 'Original filename including extension (e.g. recording.mp3). Used to detect audio format.',
+        description: 'Original filename including extension (e.g. recording.mp3). Used to detect audio format. Inferred from audio_path if omitted.',
       },
       flavour: {
         type: 'string',
@@ -27,7 +35,7 @@ export const voiceToChronicleToolDefinition = {
         description: 'Name or label for the person who recorded this. Defaults to "Narrator".',
       },
     },
-    required: ['audio_base64', 'filename', 'flavour'],
+    required: ['flavour'],
   },
 }
 

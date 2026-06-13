@@ -53,7 +53,7 @@ export async function handleChronicle(args: Record<string, unknown>) {
   const { audio, durationMs: ttsMs } = await generateTTS(text, flavour)
 
   return {
-    text,
+    chronicle: text,
     audio_base64: audio.toString('base64'),
     llm_ms: llmMs,
     tts_ms: ttsMs,
