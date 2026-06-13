@@ -18,7 +18,7 @@ import { voiceToChronicleToolDefinition, handleVoiceToChronicle } from './tools/
 function createMCPServer() {
   const server = new Server(
     { name: 'chronicler', version: '0.1.0' },
-    { capabilities: { tools: {} } },
+    { capabilities: { tools: {}, resources: {}, prompts: {} } },
   )
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
@@ -105,9 +105,10 @@ if (PORT) {
         req.on('data', (chunk: Buffer) => chunks.push(chunk))
         req.on('end', () => resolve())
       })
+      const rawBody = Buffer.concat(chunks)
+      ;(req as unknown as Record<string, unknown>).rawBody = rawBody
       let parsedBody: unknown
-      try { parsedBody = JSON.parse(Buffer.concat(chunks).toString()) } catch { parsedBody = undefined }
-
+      try { parsedBody = JSON.parse(rawBody.toString()) } catch { parsedBody = undefined }
       const server = createMCPServer()
       const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
       try {
