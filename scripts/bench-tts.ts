@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url'
 import OpenAI from 'openai'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-config({ path: resolve(__dirname, '../apps/api/.env') })
+config({ path: resolve(__dirname, '../.env') })
 
 const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,

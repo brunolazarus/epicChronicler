@@ -80,7 +80,7 @@ pipeline.openapi(
       audioKey,
       filename: file.name,
       uploadedAt: new Date().toISOString(),
-    })
+    }, { jobId: randomUUID() })
 
     return c.json({ jobId: job.id!, status: 'queued' as const }, 200)
   },
@@ -147,7 +147,7 @@ pipeline.openapi(
       transcripts,
       flavour,
       requestedAt: new Date().toISOString(),
-    })
+    }, { jobId: randomUUID() })
 
     return c.json({ jobId: job.id!, status: 'queued' as const }, 200)
   },

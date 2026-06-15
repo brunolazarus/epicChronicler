@@ -16,7 +16,7 @@ services:
     command: node apps/api/dist/index.js
     ports:
       - "${PORT:-3000}:3000"
-    env_file: ./apps/api/.env
+    env_file: .env
     environment:
       - REDIS_URL=redis://redis:6379
     depends_on:
@@ -27,7 +27,7 @@ services:
   worker:
     build: .
     command: node apps/worker/dist/index.js
-    env_file: ./apps/api/.env
+    env_file: .env
     environment:
       - REDIS_URL=redis://redis:6379
     depends_on:

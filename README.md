@@ -150,7 +150,7 @@ Each AI provider sits behind an interface — swapping implementations is a one-
 pnpm install
 
 # 2. Copy and fill in environment variables
-cp apps/api/.env.example apps/api/.env
+cp .env.example .env
 
 # 3. Start Redis
 docker compose up redis -d

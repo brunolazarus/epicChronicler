@@ -5,14 +5,17 @@
     "dev": "pnpm --filter api dev",
     "worker": "pnpm --filter worker dev",
     "mcp": "pnpm --filter mcp dev",
-    "dev:all": "concurrently -n core,api,worker -c cyan,blue,green \"pnpm --filter @chronicler/core dev\" \"pnpm --filter api dev\" \"pnpm --filter worker dev\"",
-    "dev:mcp": "concurrently -n core,mcp -c cyan,magenta \"pnpm --filter @chronicler/core dev\" \"pnpm --filter mcp dev\"",
+    "dev:all": "dotenv -e .env -- concurrently -n core,api,worker -c cyan,blue,green \"pnpm --filter @chronicler/core dev\" \"pnpm --filter api dev\" \"pnpm --filter worker dev\"",
+    "dev:mcp": "dotenv -e .env -- concurrently -n core,mcp -c cyan,magenta \"pnpm --filter @chronicler/core dev\" \"pnpm --filter mcp dev\"",
     "build": "pnpm --filter @chronicler/core build && pnpm --filter api build && pnpm --filter worker build && pnpm --filter mcp build"
   },
   "devDependencies": {
-    "concurrently": "^10.0.3"
+    "concurrently": "^10.0.3",
+    "dotenv-cli": "^11.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
