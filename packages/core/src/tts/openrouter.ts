@@ -12,6 +12,7 @@ export class OpenRouterTTSProvider implements TTSProvider {
     this.client = new OpenAI({
       apiKey: env.OPENROUTER_API_KEY,
       baseURL: 'https://openrouter.ai/api/v1',
+      timeout: 90_000,
     })
     this.modelKey = modelKey
   }

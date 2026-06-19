@@ -25,3 +25,21 @@ export interface ChronicleJobResult {
   outputTokens: number
   cacheReadTokens: number
 }
+
+export interface PipelineJobData {
+  audioKey: string
+  filename: string
+  flavour: string
+  speaker: string
+  requestedAt: string
+}
+
+export interface PipelineJobResult {
+  transcript: string
+  chronicle: string
+  audioKey: string
+  transcriptionMs: number
+  llmMs: number
+  ttsMs: number
+  totalMs: number
+}

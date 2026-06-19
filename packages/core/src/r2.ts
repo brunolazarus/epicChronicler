@@ -4,6 +4,7 @@ import {
   GetObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { env } from './environment.js'
 
 export const r2 = new S3Client({
@@ -31,4 +32,22 @@ export async function downloadFromR2(key: string): Promise<Buffer> {
 export async function deleteFromR2(key: string): Promise<void> {
   if (!env.R2_BUCKET_NAME) throw new Error('R2_BUCKET_NAME not configured')
   await r2.send(new DeleteObjectCommand({ Bucket: env.R2_BUCKET_NAME, Key: key }))
+}
+
+export async function getPresignedUploadUrl(key: string, contentType: string, expiresIn = 900): Promise<string> {
+  if (!env.R2_BUCKET_NAME) throw new Error('R2_BUCKET_NAME not configured')
+  return getSignedUrl(
+    r2,
+    new PutObjectCommand({ Bucket: env.R2_BUCKET_NAME, Key: key, ContentType: contentType }),
+    { expiresIn },
+  )
+}
+
+export async function getPresignedDownloadUrl(key: string, expiresIn = 3600): Promise<string> {
+  if (!env.R2_BUCKET_NAME) throw new Error('R2_BUCKET_NAME not configured')
+  return getSignedUrl(
+    r2,
+    new GetObjectCommand({ Bucket: env.R2_BUCKET_NAME, Key: key }),
+    { expiresIn },
+  )
 }

@@ -1,6 +1,6 @@
 export { env } from './environment.js'
 
-export { r2, uploadToR2, downloadFromR2, deleteFromR2 } from './r2.js'
+export { r2, uploadToR2, downloadFromR2, deleteFromR2, getPresignedUploadUrl, getPresignedDownloadUrl } from './r2.js'
 
 export { getRedis } from './redis.js'
 
@@ -12,6 +12,8 @@ export type {
   TranscriptionJobResult,
   ChronicleJobData,
   ChronicleJobResult,
+  PipelineJobData,
+  PipelineJobResult,
 } from './queue-types.js'
 
 export { FLAVOURS, FLAVOUR_KEYS, getFlavour } from './flavours/index.js'

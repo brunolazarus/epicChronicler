@@ -75,19 +75,31 @@ Add to `.cursor/mcp.json` in your project (or `~/.cursor/mcp.json` globally):
 
 | Tool | What it does |
 |---|---|
-| `voice_to_chronicle` | Full pipeline in one call — transcribes audio, rewrites it in flavour, returns text + MP3 |
-| `transcribe_voice` | Transcribes a base64-encoded audio file to text via Groq Whisper |
-| `generate_chronicle` | Rewrites one or more transcripts into a narrated chronicle + MP3 audio |
+| `create_audio_upload` | Returns a presigned R2 upload URL and a `fileId`. PUT your audio file directly to that URL. |
+| `process_audio` | Enqueues an uploaded file for full pipeline processing (transcribe → chronicle → TTS). Returns a `jobId`. |
+| `get_audio_job` | Polls a job. Returns `chronicle` text + `audio_base64` MP3 when complete. |
+| `generate_chronicle` | Rewrites existing text transcripts into a narrated chronicle + MP3. No audio upload needed. |
 
-Audio can be provided three ways — use whichever fits your transport:
+**Audio processing flow:**
 
-| Parameter | When to use |
-|---|---|
-| `audio_path` | Absolute local file path. Works with stdio transport (Claude Desktop, CLI direct). |
-| `audio_url` | URL the server fetches. Works with HTTP transport (Railway, Smithery). |
-| `audio_base64` | Base64-encoded content inline. Works anywhere but limited to small files (<1MB). |
+```
+# 1. Get a secure upload slot
+create_audio_upload(filename: "recording.mp3", flavour: "medieval")
+→ { uploadUrl, fileId }
 
-When using `audio_path`, `filename` is inferred from the path and can be omitted. The `flavour` parameter accepts `medieval`, `sports`, `nature`, or `fantasy`.
+# 2. Upload your file directly to R2 (audio never passes through the server)
+curl -X PUT -T recording.mp3 -H "Content-Type: audio/mpeg" "$uploadUrl"
+
+# 3. Kick off the pipeline
+process_audio(file_id: "<fileId>", flavour: "medieval")
+→ { jobId }
+
+# 4. Poll until done
+get_audio_job(job_id: "<jobId>")
+→ { status: "completed", result: { chronicle, audio_base64 } }
+```
+
+The `flavour` parameter accepts `medieval`, `sports`, `nature`, or `fantasy`.
 
 ### Self-hosting on Railway
 
@@ -101,6 +113,11 @@ The MCP server is deployable to Railway with a single click:
 | `OPENROUTER_API_KEY` | Yes | LLM + TTS via OpenRouter |
 | `GROQ_API_KEY` | Yes | Transcription via Groq Whisper |
 | `MCP_API_KEY` | Yes | Bearer token protecting the `/mcp` endpoint |
+| `REDIS_URL` | For upload flow | BullMQ job queue (required by `process_audio` / `get_audio_job`) |
+| `R2_ACCOUNT_ID` | For upload flow | Cloudflare R2 account ID (required by `create_audio_upload`) |
+| `R2_ACCESS_KEY_ID` | For upload flow | R2 access key |
+| `R2_SECRET_ACCESS_KEY` | For upload flow | R2 secret key |
+| `R2_BUCKET_NAME` | For upload flow | R2 bucket name |
 | `PORT` | No | Defaults to `3000` |
 
 3. Railway builds from the `Dockerfile` at the repo root and deploys the MCP server on port 3000

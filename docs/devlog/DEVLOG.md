@@ -18,7 +18,7 @@ technical and non-technical audiences.
 | 4 | Phase 0 | Why I built a throwaway web page before the app | Draft |
 | 5 | Phase 0 | What the AI pipeline actually cost and how fast it ran | Draft |
 | 6 | Phase 1 | MCP server — making the pipeline callable from any AI assistant | **Decision log** → [2026-06-09-mcp.md](2026-06-09-mcp.md) |
-| 7 | Phase 1 | The tool separation tradeoff: atomic operations vs. convenience wrappers | Draft |
+| 7 | Phase 1 | Testing an AI pipeline — mocks, fixtures, and what not to test | **Decision log** → [2026-06-15-testing.md](2026-06-15-testing.md) |
 | 8 | Phase 2 | Building a production API before the frontend | Draft |
 | 9 | Phase 2 | Supabase, BullMQ, and the architecture of async AI jobs | Draft |
 | 10 | Phase 3 | First screen in Expo — the gap between design and device | Draft |

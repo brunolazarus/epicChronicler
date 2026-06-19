@@ -11,20 +11,24 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { ListToolsRequestSchema, CallToolRequestSchema, ListResourcesRequestSchema, ListPromptsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
-import { transcribeToolDefinition, handleTranscribe } from './tools/transcribe.js'
 import { chronicleToolDefinition, handleChronicle } from './tools/chronicle.js'
-import { voiceToChronicleToolDefinition, handleVoiceToChronicle } from './tools/voice-to-chronicle.js'
+import { createAudioUploadToolDefinition, handleCreateAudioUpload } from './tools/create-audio-upload.js'
+import { processAudioToolDefinition, handleProcessAudio, getAudioJobToolDefinition, handleGetAudioJob } from './tools/process-audio.js'
+
+const ALL_TOOLS = [
+  createAudioUploadToolDefinition,
+  processAudioToolDefinition,
+  getAudioJobToolDefinition,
+  chronicleToolDefinition,
+]
 
 function createMCPServer() {
   const server = new Server(
-    { name: 'chronicler', version: '0.1.0' },
+    { name: 'chronicler', version: '0.2.0' },
     { capabilities: { tools: {}, resources: {}, prompts: {} } },
   )
 
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: [voiceToChronicleToolDefinition, transcribeToolDefinition, chronicleToolDefinition],
-  }))
-
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: ALL_TOOLS }))
   server.setRequestHandler(ListResourcesRequestSchema, async () => ({ resources: [] }))
   server.setRequestHandler(ListPromptsRequestSchema, async () => ({ prompts: [] }))
 
@@ -34,10 +38,12 @@ function createMCPServer() {
     try {
       let result: unknown
 
-      if (name === 'voice_to_chronicle') {
-        result = await handleVoiceToChronicle(args ?? {})
-      } else if (name === 'transcribe_voice') {
-        result = await handleTranscribe(args ?? {})
+      if (name === 'create_audio_upload') {
+        result = await handleCreateAudioUpload(args ?? {})
+      } else if (name === 'process_audio') {
+        result = await handleProcessAudio(args ?? {})
+      } else if (name === 'get_audio_job') {
+        result = await handleGetAudioJob(args ?? {})
       } else if (name === 'generate_chronicle') {
         result = await handleChronicle(args ?? {})
       } else {
@@ -91,8 +97,8 @@ if (PORT) {
     if (url === '/.well-known/mcp/server-card.json' && method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({
-        serverInfo: { name: 'chronicler', version: '0.1.0' },
-        tools: [voiceToChronicleToolDefinition, transcribeToolDefinition, chronicleToolDefinition],
+        serverInfo: { name: 'chronicler', version: '0.2.0' },
+        tools: ALL_TOOLS,
       }))
       return
     }
