@@ -9,6 +9,8 @@ export const transcriptionQueue = new Queue<TranscriptionJobData, TranscriptionJ
     defaultJobOptions: {
       attempts: 3,
       backoff: { type: 'exponential', delay: 2000 },
+      removeOnComplete: 100,
+      removeOnFail: 50,
     },
   },
 )
@@ -20,6 +22,8 @@ export const chronicleQueue = new Queue<ChronicleJobData, ChronicleJobResult, Jo
     defaultJobOptions: {
       attempts: 2,
       backoff: { type: 'exponential', delay: 3000 },
+      removeOnComplete: 100,
+      removeOnFail: 50,
     },
   },
 )

@@ -51,7 +51,7 @@ export async function handleProcessAudio(args: Record<string, unknown>) {
   const job = await queue.add(
     JobName.PROCESS,
     { audioKey: fileId, filename, flavour, speaker, requestedAt: new Date().toISOString() },
-    { jobId: randomUUID() },
+    { jobId: randomUUID(), removeOnComplete: 100, removeOnFail: 50 },
   )
   await queue.close()
 
