@@ -3,12 +3,9 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter api dev",
-    "worker": "pnpm --filter worker dev",
-    "mcp": "pnpm --filter mcp dev",
-    "dev:all": "dotenv -e .env -- concurrently -n core,api,worker -c cyan,blue,green \"pnpm --filter @chronicler/core dev\" \"pnpm --filter api dev\" \"pnpm --filter worker dev\"",
-    "dev:mcp": "dotenv -e .env -- concurrently -n core,mcp -c cyan,magenta \"pnpm --filter @chronicler/core dev\" \"pnpm --filter chronicler-mcp dev\"",
-    "dev:mcp-full": "dotenv -e .env -- concurrently -n core,worker,mcp -c cyan,green,magenta \"pnpm --filter @chronicler/core dev\" \"pnpm --filter worker dev\" \"PORT=3001 pnpm --filter chronicler-mcp dev\"",
-    "build": "pnpm --filter @chronicler/core build && pnpm --filter api build && pnpm --filter worker build && pnpm --filter mcp build"
+    "dev:mcp": "dotenv -e .env -- concurrently -n core,mcp -c cyan,magenta \"pnpm --filter @chronicler/core dev\" \"PORT=3001 pnpm --filter chronicler-mcp dev\"",
+    "dev:all": "dotenv -e .env -- concurrently -n core,api -c cyan,blue \"pnpm --filter @chronicler/core dev\" \"pnpm --filter api dev\"",
+    "build": "pnpm --filter @chronicler/core build && pnpm --filter api build && pnpm --filter chronicler-mcp build"
   },
   "devDependencies": {
     "concurrently": "^10.0.3",
