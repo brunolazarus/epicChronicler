@@ -19,6 +19,7 @@ export class GroqTranscriptionProvider implements TranscriptionProvider {
     this.client = new OpenAI({
       apiKey: env.GROQ_API_KEY,
       baseURL: 'https://api.groq.com/openai/v1',
+      timeout: 90_000,
     })
   }
 
@@ -27,11 +28,19 @@ export class GroqTranscriptionProvider implements TranscriptionProvider {
     const mimeType = MIME_TYPES[ext] ?? 'audio/mpeg'
     const start = Date.now()
 
-    const transcription = await this.client.audio.transcriptions.create({
-      file: await toFile(buffer, filename, { type: mimeType }),
-      model: 'whisper-large-v3-turbo',
-    })
+    console.log(`[groq] transcribe start — file: ${filename}, size: ${buffer.byteLength} bytes, mime: ${mimeType}`)
 
-    return { transcript: transcription.text, transcriptionMs: Date.now() - start }
+    try {
+      const transcription = await this.client.audio.transcriptions.create({
+        file: await toFile(buffer, filename, { type: mimeType }),
+        model: 'whisper-large-v3-turbo',
+      })
+
+      console.log(`[groq] transcribe done in ${Date.now() - start}ms`)
+      return { transcript: transcription.text, transcriptionMs: Date.now() - start }
+    } catch (err) {
+      console.error(`[groq] transcribe failed after ${Date.now() - start}ms:`, err)
+      throw err
+    }
   }
 }
