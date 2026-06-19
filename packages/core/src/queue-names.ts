@@ -6,6 +6,11 @@ export const QueueName = {
 
 export type QueueName = (typeof QueueName)[keyof typeof QueueName]
 
+export const QueuePrefix = {
+  MCP: 'mcp',
+  WEB: 'web',
+} as const
+
 export const JobName = {
   TRANSCRIBE: 'transcribe',
   GENERATE: 'generate',

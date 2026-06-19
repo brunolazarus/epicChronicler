@@ -1,11 +1,12 @@
 import { randomUUID } from 'crypto'
 import { Queue } from 'bullmq'
-import { getRedis, getPresignedDownloadUrl, QueueName, JobName, FLAVOUR_KEYS } from '@chronicler/core'
+import { getRedis, getPresignedDownloadUrl, QueueName, QueuePrefix, JobName, FLAVOUR_KEYS } from '@chronicler/core'
 import type { PipelineJobData, PipelineJobResult, JobNameType } from '@chronicler/core'
 
 function getPipelineQueue() {
   return new Queue<PipelineJobData, PipelineJobResult, JobNameType>(QueueName.PIPELINE, {
     connection: getRedis(),
+    prefix: QueuePrefix.MCP,
     defaultJobOptions: { attempts: 2, backoff: { type: 'exponential', delay: 3000 } },
   })
 }

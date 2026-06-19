@@ -14,6 +14,7 @@ import { ListToolsRequestSchema, CallToolRequestSchema, ListResourcesRequestSche
 import { chronicleToolDefinition, handleChronicle } from './tools/chronicle.js'
 import { createAudioUploadToolDefinition, handleCreateAudioUpload } from './tools/create-audio-upload.js'
 import { processAudioToolDefinition, handleProcessAudio, getAudioJobToolDefinition, handleGetAudioJob } from './tools/process-audio.js'
+import { createPipelineWorker } from './workers/pipeline.js'
 
 const ALL_TOOLS = [
   createAudioUploadToolDefinition,
@@ -138,6 +139,18 @@ if (PORT) {
     res.writeHead(404, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ error: 'Not found' }))
   })
+
+  const pipelineWorker = createPipelineWorker()
+  console.error('✅ MCP pipeline worker started')
+
+  async function shutdown() {
+    console.error('Shutting down MCP...')
+    await pipelineWorker.close()
+    httpServer.close()
+    process.exit(0)
+  }
+  process.on('SIGTERM', shutdown)
+  process.on('SIGINT', shutdown)
 
   httpServer.listen(PORT, '0.0.0.0', () => {
     console.error(`✅ Chronicler MCP HTTP server listening on port ${PORT} (path /mcp)`)

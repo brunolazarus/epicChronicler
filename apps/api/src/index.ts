@@ -6,6 +6,8 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { env } from "@chronicler/core";
 import pipelineRoutes from "./routes/pipeline.js";
+import { createTranscriptionWorker } from "./workers/transcription.js";
+import { createChronicleWorker } from "./workers/chronicle.js";
 
 const app = new OpenAPIHono();
 
@@ -28,6 +30,18 @@ app.get("/doc", apiReference({ spec: { url: "/openapi.json" } }));
 app.get("/", (c) => c.html(TEST_RIG_HTML));
 
 app.notFound((c) => c.json({ error: "Not found" }, 404));
+
+const transcriptionWorker = createTranscriptionWorker();
+const chronicleWorker = createChronicleWorker();
+console.log("✅ Web workers started: transcription, chronicle");
+
+async function shutdown() {
+  console.log("Shutting down API...");
+  await Promise.all([transcriptionWorker.close(), chronicleWorker.close()]);
+  process.exit(0);
+}
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`✅ Chronicler API running on http://localhost:${info.port}`);

@@ -10,6 +10,7 @@ import {
   generateTTS,
   getFlavour,
   QueueName,
+  QueuePrefix,
 } from '@chronicler/core'
 import type { PipelineJobData, PipelineJobResult, JobNameType } from '@chronicler/core'
 
@@ -45,10 +46,10 @@ export function createPipelineWorker() {
 
       await job.updateProgress(100)
       const totalMs = Date.now() - start
-      console.log(`[pipeline] job ${job.id} done in ${totalMs}ms`)
+      console.log(`[mcp:pipeline] job ${job.id} done in ${totalMs}ms`)
 
       return { transcript, chronicle, audioKey: ttsKey, transcriptionMs, llmMs, ttsMs, totalMs }
     },
-    { connection: getRedis(), concurrency: 2, stalledInterval: 120_000 },
+    { connection: getRedis(), concurrency: 2, stalledInterval: 120_000, prefix: QueuePrefix.MCP },
   )
 }

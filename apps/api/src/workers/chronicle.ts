@@ -1,6 +1,6 @@
 import { Worker } from 'bullmq'
 import { randomUUID } from 'crypto'
-import { getRedis, uploadToR2, generateChronicle, generateTTS, getFlavour, QueueName } from '@chronicler/core'
+import { getRedis, uploadToR2, generateChronicle, generateTTS, getFlavour, QueueName, QueuePrefix } from '@chronicler/core'
 import type { ChronicleJobData, ChronicleJobResult, JobNameType } from '@chronicler/core'
 
 export function createChronicleWorker() {
@@ -24,7 +24,7 @@ export function createChronicleWorker() {
 
       await job.updateProgress(60)
       console.log(
-        `[chronicle] LLM done in ${llmMs}ms — ${inputTokens} in / ${outputTokens} out / ${cacheReadTokens} cache-read tokens`,
+        `[web:chronicle] LLM done in ${llmMs}ms — ${inputTokens} in / ${outputTokens} out / ${cacheReadTokens} cache-read tokens`,
       )
 
       const { audio, durationMs: ttsMs } = await generateTTS(text, flavour)
@@ -35,10 +35,10 @@ export function createChronicleWorker() {
       await job.updateProgress(100)
 
       const totalMs = Date.now() - start
-      console.log(`[chronicle] job ${job.id} done in ${totalMs}ms`)
+      console.log(`[web:chronicle] job ${job.id} done in ${totalMs}ms`)
 
       return { text, audioKey, llmMs, ttsMs, totalMs, inputTokens, outputTokens, cacheReadTokens }
     },
-    { connection: getRedis(), concurrency: 2 },
+    { connection: getRedis(), concurrency: 2, prefix: QueuePrefix.WEB },
   )
 }
