@@ -6,6 +6,8 @@ Members record short voice stories about a shared event. AI transcribes them, me
 
 Built in public. Every architectural decision is documented as it's made.
 
+**Try it:** [epicchronicler.com](https://epicchronicler.com) — record a voice story, pick a flavour, hear it back as a narrated legend. No account needed.
+
 ---
 
 ## How it works
@@ -115,7 +117,7 @@ The MCP server is deployable to Railway with a single click:
 |---|---|---|
 | `OPENROUTER_API_KEY` | Yes | LLM + TTS via OpenRouter |
 | `GROQ_API_KEY` | Yes | Transcription via Groq Whisper |
-| `MCP_API_KEY` | Yes | Bearer token protecting the `/mcp` endpoint |
+| `MCP_API_KEY` | Yes | Comma-separated Bearer tokens protecting the `/mcp` endpoint (one per user, e.g. `key1,key2,key3`) |
 | `REDIS_URL` | Yes | BullMQ job queue for the in-process pipeline worker |
 | `R2_ACCOUNT_ID` | Yes | Cloudflare R2 — audio uploads and TTS results |
 | `R2_ACCESS_KEY_ID` | Yes | R2 access key |
@@ -216,7 +218,7 @@ The MCP server starts on port 3001 and includes the pipeline worker in-process. 
 | `R2_ACCESS_KEY_ID` | web app + MCP | R2 access key |
 | `R2_SECRET_ACCESS_KEY` | web app + MCP | R2 secret key |
 | `R2_BUCKET_NAME` | web app + MCP | R2 bucket name |
-| `MCP_API_KEY` | MCP | Bearer token protecting the `/mcp` endpoint |
+| `MCP_API_KEY` | MCP | Comma-separated Bearer tokens protecting the `/mcp` endpoint |
 
 ---
 
