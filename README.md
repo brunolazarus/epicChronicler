@@ -77,8 +77,8 @@ Add to `.cursor/mcp.json` in your project (or `~/.cursor/mcp.json` globally):
 |---|---|
 | `create_audio_upload` | Returns a presigned R2 upload URL and a `fileId`. PUT your audio file directly to that URL. |
 | `process_audio` | Enqueues an uploaded file for full pipeline processing (transcribe → chronicle → TTS). Returns a `jobId`. |
-| `get_audio_job` | Polls a job. Returns `chronicle` text + `audio_base64` MP3 when complete. |
-| `generate_chronicle` | Rewrites existing text transcripts into a narrated chronicle + MP3. No audio upload needed. |
+| `get_audio_job` | Polls a job. When complete, returns `chronicle` text + a presigned `audio_url` to download the MP3 (valid 1 hour). |
+| `generate_chronicle` | Rewrites existing text transcripts into a narrated chronicle. Returns chronicle text + `audio_base64` MP3. No upload needed. |
 
 **Audio processing flow:**
 
@@ -96,7 +96,10 @@ process_audio(file_id: "<fileId>", flavour: "medieval")
 
 # 4. Poll until done
 get_audio_job(job_id: "<jobId>")
-→ { status: "completed", result: { chronicle, audio_base64 } }
+→ { status: "completed", chronicle: "...", audio_url: "https://..." }
+
+# 5. Download the narration
+curl -L -o chronicle.mp3 "<audio_url>"
 ```
 
 The `flavour` parameter accepts `medieval`, `sports`, `nature`, or `fantasy`.
@@ -113,11 +116,11 @@ The MCP server is deployable to Railway with a single click:
 | `OPENROUTER_API_KEY` | Yes | LLM + TTS via OpenRouter |
 | `GROQ_API_KEY` | Yes | Transcription via Groq Whisper |
 | `MCP_API_KEY` | Yes | Bearer token protecting the `/mcp` endpoint |
-| `REDIS_URL` | For upload flow | BullMQ job queue (required by `process_audio` / `get_audio_job`) |
-| `R2_ACCOUNT_ID` | For upload flow | Cloudflare R2 account ID (required by `create_audio_upload`) |
-| `R2_ACCESS_KEY_ID` | For upload flow | R2 access key |
-| `R2_SECRET_ACCESS_KEY` | For upload flow | R2 secret key |
-| `R2_BUCKET_NAME` | For upload flow | R2 bucket name |
+| `REDIS_URL` | Yes | BullMQ job queue for the in-process pipeline worker |
+| `R2_ACCOUNT_ID` | Yes | Cloudflare R2 — audio uploads and TTS results |
+| `R2_ACCESS_KEY_ID` | Yes | R2 access key |
+| `R2_SECRET_ACCESS_KEY` | Yes | R2 secret key |
+| `R2_BUCKET_NAME` | Yes | R2 bucket name |
 | `PORT` | No | Defaults to `3000` |
 
 3. Railway builds from the `Dockerfile` at the repo root and deploys the MCP server on port 3000
@@ -158,9 +161,9 @@ Each AI provider sits behind an interface — swapping implementations is a one-
 
 ---
 
-## Running locally
+## Try the web app
 
-**Requirements:** Node.js 20+, pnpm, Docker (for Redis)
+**Requirements:** Node.js 20+, pnpm, Docker (for Redis), Cloudflare R2 bucket, Groq and OpenRouter API keys.
 
 ```bash
 # 1. Install dependencies
@@ -172,30 +175,48 @@ cp .env.example .env
 # 3. Start Redis
 docker compose up redis -d
 
-# 4. Start the API server and workers
+# 4. Start the API server (includes transcription and chronicle workers in-process)
 pnpm dev:all
 ```
 
-Open `http://localhost:3000` for the Phase 0 test rig — upload an audio file and run the full pipeline in the browser.
+Open `http://localhost:3000` — upload an audio file, pick a flavour, and the full pipeline runs in the browser. API documentation is available at `http://localhost:3000/doc` (Scalar UI).
 
-To run the MCP server locally:
+---
+
+## Run the MCP server locally
 
 ```bash
-pnpm mcp
+pnpm dev:mcp
+```
+
+The MCP server starts on port 3001 and includes the pipeline worker in-process. To connect a local Claude Desktop instance to it, add this to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "chronicler-local": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:3001/mcp"],
+      "env": {
+        "MCP_REMOTE_HEADER_Authorization": "Bearer <your-mcp-api-key>"
+      }
+    }
+  }
+}
 ```
 
 **Required environment variables:**
 
-| Variable | What it's for |
-|---|---|
-| `OPENROUTER_API_KEY` | LLM (Claude) + TTS (Kokoro) |
-| `GROQ_API_KEY` | Transcription via Whisper |
-| `R2_ACCOUNT_ID` | Cloudflare R2 storage (API + worker only) |
-| `R2_ACCESS_KEY_ID` | Cloudflare R2 storage (API + worker only) |
-| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 storage (API + worker only) |
-| `R2_BUCKET_NAME` | Cloudflare R2 storage (API + worker only) |
-
-API documentation is available at `http://localhost:3000/doc` (Scalar UI, auto-generated from route schemas).
+| Variable | Required by | Description |
+|---|---|---|
+| `OPENROUTER_API_KEY` | web app + MCP | LLM (Claude) + TTS (Kokoro) via OpenRouter |
+| `GROQ_API_KEY` | web app + MCP | Transcription via Groq Whisper |
+| `REDIS_URL` | web app + MCP | BullMQ job queue |
+| `R2_ACCOUNT_ID` | web app + MCP | Cloudflare R2 account ID |
+| `R2_ACCESS_KEY_ID` | web app + MCP | R2 access key |
+| `R2_SECRET_ACCESS_KEY` | web app + MCP | R2 secret key |
+| `R2_BUCKET_NAME` | web app + MCP | R2 bucket name |
+| `MCP_API_KEY` | MCP | Bearer token protecting the `/mcp` endpoint |
 
 ---
 
@@ -203,16 +224,16 @@ API documentation is available at `http://localhost:3000/doc` (Scalar UI, auto-g
 
 ```
 apps/
-├── api/          # Hono REST API — routes, queues, Phase 0 test rig
-├── worker/       # BullMQ job processors — transcription and chronicle jobs
-└── mcp/          # MCP server — exposes pipeline as tools over stdio and HTTP
+├── api/          # Hono REST API — routes, queues, web test rig; runs transcription + chronicle workers in-process
+└── mcp/          # MCP server — exposes pipeline as tools over HTTP; runs pipeline worker in-process
 
 packages/
-└── core/         # Shared library — env validation, AI providers, R2, Redis, flavours
+└── core/         # Shared library — env validation, AI providers, R2, Redis, flavours, queue names
     └── src/
         ├── environment.ts        # Zod env schema — crashes clearly if anything is missing
-        ├── r2.ts                 # Cloudflare R2 upload / download / delete
+        ├── r2.ts                 # Cloudflare R2 upload / download / delete + presigned URLs
         ├── redis.ts              # ioredis connection shared by queues and workers
+        ├── queue-names.ts        # Queue names + Redis prefix constants (QueuePrefix.WEB / MCP)
         ├── transcription/        # TranscriptionProvider interface + Groq implementation
         ├── llm/                  # LLMProvider interface + OpenRouter implementation
         │   └── openrouter-models.ts  # LLM model registry (5 models, swappable)
@@ -231,10 +252,11 @@ Full reasoning behind every architectural choice is in [`docs/SDD.md`](docs/SDD.
 - **Flavour is per-event, not per-group** — different events have different tones
 - **Raw audio is deleted after transcription** — voice data under GDPR/CCPA is a liability; the transcript is what matters
 - **AI jobs run in a queue, not inline** — transcription + LLM + TTS takes 5–20s; BullMQ keeps the HTTP layer fast and adds retry logic
+- **Workers are in-process, not a separate service** — BullMQ workers are async and IO-bound; they don't block the Node event loop, so running alongside the HTTP server is safe and avoids an extra Railway deployment
+- **Redis prefix isolation** — both apps share one Redis instance; `mcp:pipeline:*` and `web:transcription:*` namespaces prevent cross-app queue contamination without any additional infrastructure
+- **Audio upload via presigned R2 URLs** — in the MCP flow, audio goes directly from the client to R2 without touching the server; keeps the HTTP server stateless
 - **Provider abstraction layer** — each AI capability has an interface; concrete providers are swappable without touching the rest of the codebase
 - **Model registries in `packages/core`** — TTS and LLM models are named entries in a registry; switching providers or models is a one-line change, no tool logic to touch
-- **R2 is optional in env** — the MCP server doesn't use storage, so R2 credentials are not required for it to start
-- **MCP runs both transports** — stdio for local clients (Claude Desktop direct), HTTP for remote clients (Railway)
 
 ---
 

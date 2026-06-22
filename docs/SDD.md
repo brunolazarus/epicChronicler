@@ -1,8 +1,8 @@
 # Chronicler — Software Design Document (SDD)
 
-**Version:** 0.4  
+**Version:** 0.5  
 **Date:** June 2026  
-**Status:** Active — Phase 0 complete; MCP server in progress (Phase 1)
+**Status:** Active — Phase 0 complete; MCP server deployed and working in production (Phase 1 complete)
 
 ---
 
@@ -10,6 +10,7 @@
 
 | Version | Date | Summary |
 |---|---|---|
+| 0.5 | 2026-06-19 | Queue architecture refactor: `apps/worker` deleted; each app runs its own BullMQ workers in-process; Redis key prefix isolation (`mcp:`, `web:`) enforces ownership; MCP server now uses R2 for audio upload/download; both services confirmed working in production |
 | 0.4 | 2026-06-09 | Added MCP server as Phase 1; postponed Expo to Phase 3+; updated tech stack to actual providers (Groq Whisper, Kokoro 82M via OpenRouter); added `packages/core` service isolation to architecture |
 | 0.3 | 2026-06-01 | Phase 0 complete; switched to OpenRouter for LLM + TTS; added Groq for transcription; built provider abstraction layer; added `@hono/zod-openapi` + Scalar UI for API docs |
 | 0.2 | 2026-05 | Data model finalised; all design decisions resolved; API endpoints defined |
@@ -231,40 +232,49 @@ Friend groups share experiences constantly, but have no good way to preserve the
 └───────────────────────────┬─────────────────────────────────┘
                             │ HTTPS REST / WebSocket
                             ▼
-┌─────────────────────────────────────────────────────────────┐
-│              API Server (Hono / Node.js / TypeScript)        │
-│                                                              │
-│   ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│   │ Auth Service │  │  REST API    │  │  Job Queue       │  │
-│   │ (Supabase)   │  │  (CRUD)      │  │  (BullMQ+Redis)  │  │
-│   └──────────────┘  └──────────────┘  └────────┬─────────┘  │
-└────────────────────────────────────────────────┼────────────┘
-                                                 │
-                    ┌────────────────────────────┼────────────────────────────┐
-                    │                            │                            │
-                    ▼                            ▼                            ▼
-          ┌─────────────────┐        ┌───────────────────┐        ┌──────────────────┐
-          │  File Storage   │        │  AI Pipeline      │        │  Database        │
-          │  (Cloudflare R2)│        │  (packages/core)  │        │  (PostgreSQL via  │
-          │                 │        │                   │        │   Supabase)       │
-          │  - Raw audio    │        │  1. Groq Whisper  │        │                  │
-          │  - TTS audio    │        │  2. Claude Sonnet │        │  - Users         │
-          │  - Avatars      │        │  3. Kokoro TTS    │        │  - Groups        │
-          └─────────────────┘        └───────────────────┘        │  - Events        │
-                                                                   │  - Recordings    │
-                                     ┌───────────────────┐        │  - Chronicles    │
-                                     │  MCP Server       │        └──────────────────┘
-                                     │  (apps/mcp)       │
-                                     │  transcribe_voice │
-                                     │  generate_chronicle│
-                                     └───────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│  epicChronicler-web (Railway)                                       │
+│                                                                     │
+│   ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐   │
+│   │ Auth Service │  │  REST API    │  │  BullMQ Workers        │   │
+│   │ (Supabase)   │  │  (Hono)      │  │  web:transcription:*   │   │
+│   └──────────────┘  └──────────────┘  │  web:chronicle:*       │   │
+│                                        └───────────┬────────────┘   │
+└────────────────────────────────────────────────────┼───────────────┘
+                                                     │
+                    ┌────────────────────────────────┼───────────────────────────┐
+                    │                                │                           │
+                    ▼                                ▼                           ▼
+          ┌─────────────────┐        ┌───────────────────────┐       ┌──────────────────┐
+          │  Cloudflare R2  │        │  AI Pipeline          │       │  Database        │
+          │                 │        │  (packages/core)      │       │  (PostgreSQL via  │
+          │  - Raw audio    │        │                       │       │   Supabase)       │
+          │  - TTS audio    │        │  1. Groq Whisper      │       │                  │
+          │  - Avatars      │        │  2. LLM (OpenRouter)  │       │  - Users         │
+          └─────────────────┘        │  3. TTS (OpenRouter)  │       │  - Groups        │
+                    ▲                └───────────────────────┘       │  - Events        │
+                    │                                                 │  - Recordings    │
+          ┌─────────┴───────────────────────────────────┐            │  - Chronicles    │
+          │  chronicler-mcp (Railway)                   │            └──────────────────┘
+          │                                             │
+          │  HTTP Server + Pipeline Worker (in-process) │
+          │  mcp:pipeline:*                             │
+          │                                             │
+          │  create_audio_upload  →  presigned R2 URL   │
+          │  process_audio        →  enqueue + run      │
+          │  get_audio_job        →  poll result        │
+          └─────────────────────────────────────────────┘
 ```
+
+Both Railway services share the same Redis instance. Redis key prefixes (`web:`, `mcp:`) enforce ownership — workers from one service never consume jobs enqueued by the other.
 
 ### 7.2 Key Architectural Decisions
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| Async AI jobs | Job queue (Redis + worker) | AI calls take 5–20s; don't block the HTTP request |
+| Async AI jobs | BullMQ workers in-process alongside the HTTP server | AI calls take 5–20s and are IO-bound (async API calls); they don't block the event loop, so a separate worker process or service adds complexity without benefit at this scale |
+| Queue ownership | Each app owns its workers; Redis key prefixes isolate namespaces | `mcp:pipeline:*` and `web:transcription:*` share one Redis instance without cross-contamination; no separate worker Railway service needed |
+| Audio upload (MCP) | Presigned R2 PUT URL — audio never passes through the server | Keeps the HTTP server stateless; audio goes directly from client to R2 at full network speed |
 | Flavour scope | Per-event (set at event creation) | Flexibility per memory; groups don't lock into one style |
 | Flavour storage | Server-side config table | New flavours without app updates |
 | Audio storage | R2 (not database) | Binary files belong in object storage, not DB |
@@ -522,18 +532,23 @@ Chronicles:
 
 ---
 
-### Phase 1 — MCP Server (in progress)
+### Phase 1 — MCP Server ✅ Complete
 **Goal:** Make the pipeline callable from any AI assistant (Claude Desktop, Cursor, etc.) — a working, shareable artefact that demonstrates the product without requiring the mobile app.
 
-- [ ] Monorepo restructured: shared providers extracted to `packages/core` (`@chronicler/core`)
-- [ ] `apps/worker` isolated as its own package (BullMQ consumers)
-- [ ] `apps/mcp` scaffolded with `@modelcontextprotocol/sdk`
-- [ ] `transcribe_voice` tool: accepts base64 audio + filename → returns transcript
-- [ ] `generate_chronicle` tool: accepts transcript(s) + flavour → returns text chronicle + TTS audio (base64)
-- [ ] MCP server tested in Claude Desktop: voice note in, narrated chronicle out
-- [ ] README updated with MCP usage instructions
+- [x] Monorepo restructured: shared providers extracted to `packages/core` (`@chronicler/core`)
+- [x] `apps/mcp` scaffolded with `@modelcontextprotocol/sdk`
+- [x] `create_audio_upload` tool: returns presigned R2 PUT URL + fileId; audio uploads directly from client to R2
+- [x] `process_audio` tool: enqueues uploaded file for full pipeline (transcribe → chronicle → TTS); returns jobId
+- [x] `get_audio_job` tool: polls job status; returns chronicle text + presigned R2 URL for TTS audio when complete
+- [x] `generate_chronicle` tool: accepts text transcripts + flavour → returns chronicle text + MP3 audio (no upload needed)
+- [x] Pipeline worker runs in-process alongside the MCP HTTP server (BullMQ, `mcp:pipeline:*` prefix on shared Redis)
+- [x] MCP server deployed on Railway (HTTP transport, Bearer auth)
+- [x] MCP server tested end-to-end in production: audio upload → chronicle text + narration ✅
+- [x] README updated with MCP usage instructions and available tools
 
-**Exit criteria:** A Claude Desktop user can send a voice note and receive a narrated chronicle in their chosen flavour without touching any app or web UI.
+**Outcome:** Any AI assistant with MCP support can upload a voice recording and receive a narrated chronicle in the chosen flavour. Works with Claude Desktop and Cursor against the deployed Railway endpoint.
+
+**Note:** `apps/worker` was created as a standalone package during this phase then removed — workers are now owned in-process by each app, isolated via Redis key prefixes.
 
 ---
 
