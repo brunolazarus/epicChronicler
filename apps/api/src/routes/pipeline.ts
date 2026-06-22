@@ -4,6 +4,10 @@ import type { Job } from 'bullmq'
 import { uploadToR2, downloadFromR2, FLAVOURS, FLAVOUR_KEYS, QueueName, JobName } from '@chronicler/core'
 import type { TranscriptionJobData, TranscriptionJobResult, ChronicleJobData, ChronicleJobResult } from '@chronicler/core'
 import { transcriptionQueue, chronicleQueue } from '../queues/index.js'
+import { rateLimit } from '../middleware/rate-limit.js'
+
+// 10 requests per IP per 10 minutes on routes that call paid AI APIs
+const aiRateLimit = rateLimit(10, 10 * 60 * 1000)
 
 type AnyJob =
   | Job<TranscriptionJobData, TranscriptionJobResult, JobName>
@@ -41,6 +45,9 @@ const FlavourSchema = z.object({
 const ErrorSchema = z.object({ error: z.string() })
 
 // --- Routes ---
+
+pipeline.use('/upload', aiRateLimit)
+pipeline.use('/generate', aiRateLimit)
 
 pipeline.openapi(
   createRoute({

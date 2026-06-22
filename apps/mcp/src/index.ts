@@ -73,8 +73,12 @@ if (PORT) {
   // HTTP transport — remote clients (Railway, Smithery)
   // ---------------------------------------------------------------------------
 
+  if (!MCP_API_KEY) {
+    console.error('❌ MCP_API_KEY must be set when running in HTTP mode')
+    process.exit(1)
+  }
+
   function checkAuth(req: IncomingMessage, res: ServerResponse): boolean {
-    if (!MCP_API_KEY) return true
     const authHeader = req.headers['authorization'] ?? ''
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader
     if (token !== MCP_API_KEY) {
