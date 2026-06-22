@@ -66,14 +66,19 @@ function createMCPServer() {
 }
 
 const PORT = process.env['PORT'] ? parseInt(process.env['PORT'], 10) : null
-const MCP_API_KEY = process.env['MCP_API_KEY']
+
+// Comma-separated list of valid Bearer tokens — one per user, so individual keys can be revoked
+// without affecting others. Set MCP_API_KEY=key1,key2,key3 in Railway env vars.
+const validKeys = new Set(
+  (process.env['MCP_API_KEY'] ?? '').split(',').map(k => k.trim()).filter(Boolean)
+)
 
 if (PORT) {
   // ---------------------------------------------------------------------------
   // HTTP transport — remote clients (Railway, Smithery)
   // ---------------------------------------------------------------------------
 
-  if (!MCP_API_KEY) {
+  if (validKeys.size === 0) {
     console.error('❌ MCP_API_KEY must be set when running in HTTP mode')
     process.exit(1)
   }
@@ -81,7 +86,7 @@ if (PORT) {
   function checkAuth(req: IncomingMessage, res: ServerResponse): boolean {
     const authHeader = req.headers['authorization'] ?? ''
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader
-    if (token !== MCP_API_KEY) {
+    if (!validKeys.has(token)) {
       res.writeHead(401, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ error: 'Unauthorized' }))
       return false
