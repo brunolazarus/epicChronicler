@@ -1,15 +1,7 @@
 import { randomUUID } from 'crypto'
-import { Queue } from 'bullmq'
-import { getRedis, getPresignedDownloadUrl, QueueName, QueuePrefix, JobName, FLAVOUR_KEYS } from '@chronicler/core'
-import type { PipelineJobData, PipelineJobResult, JobNameType } from '@chronicler/core'
-
-function getPipelineQueue() {
-  return new Queue<PipelineJobData, PipelineJobResult, JobNameType>(QueueName.PIPELINE, {
-    connection: getRedis(),
-    prefix: QueuePrefix.MCP,
-    defaultJobOptions: { attempts: 2, backoff: { type: 'exponential', delay: 3000 } },
-  })
-}
+import { getPresignedDownloadUrl, JobName, FLAVOUR_KEYS } from '@chronicler/core'
+import type { PipelineJobResult } from '@chronicler/core'
+import { pipelineQueue } from '../queues/index.js'
 
 // --- process_audio -----------------------------------------------------------
 
@@ -48,13 +40,11 @@ export async function handleProcessAudio(args: Record<string, unknown>) {
 
   const filename = fileId.split('/').pop() ?? fileId
 
-  const queue = getPipelineQueue()
-  const job = await queue.add(
+  const job = await pipelineQueue.add(
     JobName.PROCESS,
     { audioKey: fileId, filename, flavour, speaker, requestedAt: new Date().toISOString() },
-    { jobId: randomUUID(), removeOnComplete: 100, removeOnFail: 50 },
+    { jobId: randomUUID() },
   )
-  await queue.close()
 
   return {
     jobId: job.id!,
@@ -85,10 +75,7 @@ export async function handleGetAudioJob(args: Record<string, unknown>) {
   const jobId = typeof args['job_id'] === 'string' ? args['job_id'] : undefined
   if (!jobId) throw new Error('job_id is required')
 
-  const queue = getPipelineQueue()
-  const job = await queue.getJob(jobId)
-  await queue.close()
-
+  const job = await pipelineQueue.getJob(jobId)
   if (!job) throw new Error(`Job ${jobId} not found`)
 
   const state = await job.getState()

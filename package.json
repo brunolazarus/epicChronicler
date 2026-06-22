@@ -5,15 +5,20 @@
     "dev": "pnpm --filter api dev",
     "dev:mcp": "dotenv -e .env -- concurrently -n core,mcp -c cyan,magenta \"pnpm --filter @chronicler/core dev\" \"PORT=3001 pnpm --filter chronicler-mcp dev\"",
     "dev:all": "dotenv -e .env -- concurrently -n core,api -c cyan,blue \"pnpm --filter @chronicler/core dev\" \"pnpm --filter api dev\"",
-    "build": "pnpm --filter @chronicler/core build && pnpm --filter api build && pnpm --filter chronicler-mcp build"
+    "build": "turbo build",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "concurrently": "^10.0.3",
-    "dotenv-cli": "^11.0.0"
+    "dotenv-cli": "^11.0.0",
+    "turbo": "^2.9.18"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
     ]
-  }
+  },
+  "packageManager": "pnpm@9.9.0"
 }

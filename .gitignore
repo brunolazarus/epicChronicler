@@ -6,3 +6,4 @@ dist/
 *.log
 recording.m4a
 .claude/
+.turbo/
