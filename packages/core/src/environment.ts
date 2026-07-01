@@ -7,7 +7,9 @@ const schema = z.object({
   REDIS_URL: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string(),
+  OPENROUTER_BASE_URL: z.string().default('https://openrouter.ai/api/v1'),
   GROQ_API_KEY: z.string(),
+  GROQ_BASE_URL: z.string().default('https://api.groq.com/openai/v1'),
   ELEVENLABS_API_KEY: z.string().optional(),
   // R2 is only used by the API and worker — optional so the MCP server can start without storage credentials
   R2_ACCOUNT_ID: z.string().optional(),
