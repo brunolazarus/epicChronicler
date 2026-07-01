@@ -192,6 +192,59 @@ git commit -m "test: add full-journey browser test for the web demo"
 
 ---
 
+### Task 4: Fully isolate rate-limit buckets per Playwright project
+
+**Files:**
+- Modify: `playwright.config.ts:11-19` (the `projects` array)
+
+**Interfaces:**
+- Consumes: Task 2's per-call `x-forwarded-for: '203.0.113.42'` header on the rate-limit test in `tests/api/pipeline.spec.ts` (unchanged — this task relies on Playwright's per-call header overriding a project-level default for the same header name)
+- Produces: nothing consumed by other tasks — this closes out the sub-project.
+
+**Context:** The final whole-branch review found that Task 2's fix removed the *acute* collision (the 12-request rate-limit test) but the shared `'unknown'` bucket still absorbs 7 of its 10-request/10-minute budget from other, untouched local traffic (`pipeline.spec.ts`'s other requests, `pipeline-mocked.spec.ts`). Since the window is fixed (not sliding) and the dev server persists across `pnpm test` invocations (`reuseExistingServer: true`), two runs within 10 minutes could exceed the budget and intermittently 429 the browser test. This task closes that gap by giving each Playwright project its own dedicated `x-forwarded-for` identity, so nothing shares `'unknown'` anymore.
+
+- [ ] **Step 1: Add project-level `extraHTTPHeaders`**
+
+In `playwright.config.ts`, add a `use.extraHTTPHeaders` override to both projects:
+
+```typescript
+  projects: [
+    {
+      name: 'api',
+      testMatch: 'tests/api/**/*.spec.ts',
+      use: {
+        extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.7' },
+      },
+    },
+    {
+      name: 'web',
+      testMatch: 'tests/web/**/*.spec.ts',
+      use: {
+        extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.8' },
+      },
+    },
+  ],
+```
+
+(`198.51.100.7`/`.8` are from the RFC 5737 TEST-NET-2 documentation range — distinct from `203.0.113.42`, TEST-NET-3, already used by the rate-limit test itself.) Playwright applies `extraHTTPHeaders` from a project's `use` block to every request made through that project's `request` fixture and, for the `web` project, to the browser context's own network traffic too — including the demo page's own `fetch()` calls. The rate-limit test's existing per-call `headers: { 'x-forwarded-for': '203.0.113.42' }` (unchanged, from Task 2) overrides this project-level default for its own requests only, since per-call headers take precedence over context-level defaults for the same header name.
+
+- [ ] **Step 2: Verify full isolation**
+
+Run: `pnpm test`
+Expected: `10 passed`. Confirm the rate-limiter test (`tests/api/pipeline.spec.ts`) still reports at least one 429 (proving its own override still wins over the new project default).
+
+Run: `pnpm test` a second time immediately after
+Expected: `10 passed` again — this is the actual proof the flakiness is gone: two runs in immediate succession against the same reused server no longer share any bucket that could be exhausted.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add playwright.config.ts
+git commit -m "test: fully isolate rate-limit buckets per Playwright project"
+```
+
+---
+
 ## Summary
 
-After all three tasks: `pnpm test` runs 10 Playwright tests, including one real browser-driven test that exercises the web demo's actual DOM and JavaScript end-to-end against the mocked AI providers — proving the UI wiring works, not just the API layer underneath it. The rate-limiter test pollution found and fixed along the way (Task 2) also makes the whole suite more reliable regardless of run order, not just for this new test. Sub-project 3 (MCP tool tests) can proceed independently; sub-project 4 (CI) still waits until both are done.
+After all four tasks: `pnpm test` runs 10 Playwright tests, including one real browser-driven test that exercises the web demo's actual DOM and JavaScript end-to-end against the mocked AI providers — proving the UI wiring works, not just the API layer underneath it. The rate-limiter test pollution found and fixed along the way (Task 2) — and then fully closed out (Task 4, added after the final whole-branch review) — also makes the whole suite reliable across repeated runs, not just for this new test. Sub-project 3 (MCP tool tests) can proceed independently; sub-project 4 (CI) still waits until both are done.
