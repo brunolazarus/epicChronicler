@@ -35,7 +35,7 @@ No behavior change in production — the defaults match what's hardcoded today.
 
 ### 2. Local fixture server
 
-`tests/helpers/mock-ai-server.ts` — a small Hono app (already a dependency; no new package). Since Groq and OpenRouter are both reachable through one overridable host once `baseURL` is configurable, a single server instance serves all three routes on one port:
+`tests/helpers/mock-ai-server.mjs` — a dependency-free Node `http` server (plain ESM, no TypeScript tooling needed to run it directly). Since Groq and OpenRouter are both reachable through one overridable host once `baseURL` is configurable, a single server instance serves all three routes on one port:
 
 | Route | Method | Serves |
 |---|---|---|
