@@ -11,7 +11,7 @@ export class OpenRouterLLMProvider implements LLMProvider {
   constructor(modelKey: OpenRouterLLMModelKey = DEFAULT_LLM_MODEL) {
     this.client = new OpenAI({
       apiKey: env.OPENROUTER_API_KEY,
-      baseURL: 'https://openrouter.ai/api/v1',
+      baseURL: env.OPENROUTER_BASE_URL,
       timeout: 90_000,
       fetch: ((url: string, init?: RequestInit) =>
         fetch(url, (init?.body ? { ...init, duplex: 'half' } : init) as RequestInit)

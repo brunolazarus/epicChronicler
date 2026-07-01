@@ -18,7 +18,7 @@ export class GroqTranscriptionProvider implements TranscriptionProvider {
   constructor() {
     this.client = new OpenAI({
       apiKey: env.GROQ_API_KEY,
-      baseURL: 'https://api.groq.com/openai/v1',
+      baseURL: env.GROQ_BASE_URL,
       fetch: ((url: string, init?: RequestInit) =>
         fetch(url, (init?.body ? { ...init, duplex: 'half' } : init) as RequestInit)
       ) as unknown as NonNullable<ConstructorParameters<typeof OpenAI>[0]>['fetch'],

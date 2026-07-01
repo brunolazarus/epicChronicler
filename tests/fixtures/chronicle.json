@@ -1,0 +1,13 @@
+{
+  "choices": [
+    {
+      "message": {
+        "content": "Here follows the chronicle of the fellowship's ascent, as testified before this scribe by Alex and Sam."
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 42,
+    "completion_tokens": 18
+  }
+}

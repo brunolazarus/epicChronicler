@@ -7,3 +7,5 @@ dist/
 recording.m4a
 .claude/
 .turbo/
+test-results/
+playwright-report/
