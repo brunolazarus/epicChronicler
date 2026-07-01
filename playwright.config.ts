@@ -13,6 +13,10 @@ export default defineConfig({
       name: 'api',
       testMatch: 'tests/api/**/*.spec.ts',
     },
+    {
+      name: 'web',
+      testMatch: 'tests/web/**/*.spec.ts',
+    },
   ],
   webServer: [
     ...(useRealAi
