@@ -6,7 +6,8 @@
     "dev:mcp": "dotenv -e .env -- concurrently -n core,mcp -c cyan,magenta \"pnpm --filter @chronicler/core dev\" \"PORT=3001 pnpm --filter chronicler-mcp dev\"",
     "dev:all": "dotenv -e .env -- concurrently -n core,api -c cyan,blue \"pnpm --filter @chronicler/core dev\" \"pnpm --filter api dev\"",
     "build": "turbo build",
-    "test": "playwright test",
+    "test": "playwright test --grep-invert @integration",
+    "test:integration": "USE_REAL_AI=1 playwright test --grep @integration",
     "test:ui": "playwright test --ui"
   },
   "devDependencies": {
