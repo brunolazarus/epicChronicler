@@ -12,10 +12,16 @@ export default defineConfig({
     {
       name: 'api',
       testMatch: 'tests/api/**/*.spec.ts',
+      use: {
+        extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.7' },
+      },
     },
     {
       name: 'web',
       testMatch: 'tests/web/**/*.spec.ts',
+      use: {
+        extraHTTPHeaders: { 'x-forwarded-for': '198.51.100.8' },
+      },
     },
   ],
   webServer: [
