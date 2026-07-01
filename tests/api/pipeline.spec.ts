@@ -80,7 +80,10 @@ test('rate limiter returns 429 after 10 requests per IP within window', async ({
 
   let tooManyCount = 0
   for (let i = 0; i < 12; i++) {
-    const res = await request.post('/api/v1/pipeline/generate', { data: payload })
+    const res = await request.post('/api/v1/pipeline/generate', {
+      data: payload,
+      headers: { 'x-forwarded-for': '203.0.113.42' },
+    })
     if (res.status() === 429) tooManyCount++
   }
 
