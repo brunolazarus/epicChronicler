@@ -1,7 +1,7 @@
 # Chronicler — Software Design Document (SDD)
 
-**Version:** 0.5  
-**Date:** June 2026  
+**Version:** 0.6  
+**Date:** July 2026  
 **Status:** Active — Phase 0 complete; MCP server deployed and working in production (Phase 1 complete)
 
 ---
@@ -10,6 +10,7 @@
 
 | Version | Date | Summary |
 |---|---|---|
+| 0.6 | 2026-07-16 | Documented monorepo build tooling (§7.3): Turborepo rationale, current vs. projected task coverage, known gap with the Docker deploy path; added workspace/build-graph diagram to `docs/architecture.md` |
 | 0.5 | 2026-06-19 | Queue architecture refactor: `apps/worker` deleted; each app runs its own BullMQ workers in-process; Redis key prefix isolation (`mcp:`, `web:`) enforces ownership; MCP server now uses R2 for audio upload/download; both services confirmed working in production |
 | 0.4 | 2026-06-09 | Added MCP server as Phase 1; postponed Expo to Phase 3+; updated tech stack to actual providers (Groq Whisper, Kokoro 82M via OpenRouter); added `packages/core` service isolation to architecture |
 | 0.3 | 2026-06-01 | Phase 0 complete; switched to OpenRouter for LLM + TTS; added Groq for transcription; built provider abstraction layer; added `@hono/zod-openapi` + Scalar UI for API docs |
@@ -282,6 +283,22 @@ Both Railway services share the same Redis instance. Redis key prefixes (`web:`,
 | Multi-perspective merging | Simple concatenation with speaker labels | "Alex said: ... Sam said: ..." passed to LLM |
 | Contributor cap | 2 for MVP, 3 post-MVP | Kept as a runtime config value — no schema change needed to bump |
 | Chronicle permissions | Generation: any member; Regeneration: owner only (stored as role list) | Role list makes it easy to open up regeneration to all members later |
+
+### 7.3 Monorepo & Build Tooling
+
+**Structure:** pnpm workspaces (`apps/*`, `packages/*`, `scripts`) with Turborepo orchestrating cross-package tasks. See `docs/architecture.md` for the full workspace diagram.
+
+**Why Turborepo, not hand-rolled `pnpm --filter` chains:**
+
+| Concern | Without Turborepo | With Turborepo |
+|---|---|---|
+| Build order | Every script that needs `@chronicler/core` built first has to say so explicitly, in order | `turbo.json`'s `"build": { "dependsOn": ["^build"] }` derives build order from the workspace dependency graph — a new app or package that depends on `@chronicler/core` is ordered correctly with zero script changes |
+| Redundant work | A full `pnpm build` rebuilds every package every time, regardless of what changed | Turborepo hashes each package's inputs and skips/caches unchanged builds — the payoff grows as `packages/*` grows past just `core` |
+| Entry point | Root scripts accumulate one more `pnpm --filter` line per package added | `turbo build` is one command regardless of workspace size |
+
+**Current usage is intentionally narrow — only `build` goes through Turborepo.** The root `pnpm build` script is `turbo build`. `dev`, `dev:mcp`, and `dev:all` run directly via `concurrently` + `pnpm --filter` (`package.json`), and `test` runs Playwright directly — none of these benefit from Turborepo's cache, since dev servers are long-running watch processes and the test suite isn't scoped per-package.
+
+**Known gap:** `Dockerfile.api` and `Dockerfile.mcp` do **not** call `turbo build`. Each hand-rolls `pnpm --filter @chronicler/core build` because the container runs the app straight from source via `tsx` (e.g. `pnpm --filter api exec tsx src/index.ts`), not from a compiled `dist/` — so `@chronicler/core` is the only package in the image that needs a build step at all. This means Turborepo's dependency-ordering isn't exercised by the deploy path today; it only matters for local full-repo builds (`pnpm build` at the root). It starts pulling real weight once a CI pipeline (GitHub Actions — planned, not yet built; see §11) runs `turbo build` / `turbo test` across the whole workspace, or once a second app depends on more than one `packages/*` entry and the build order can no longer be eyeballed.
 
 ---
 

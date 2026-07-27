@@ -1,5 +1,40 @@
 # Chronicler — Service Architecture
 
+## Monorepo Layout
+
+Current workspace members, the build/task graph, and the infrastructure each app talks to. Dashed nodes and edges are projected — not built yet. Rationale for Turborepo is in `docs/SDD.md` §7.3.
+
+```mermaid
+flowchart TB
+    subgraph apps[" "]
+        direction LR
+        API["API"]
+        MCP["MCP Server"]
+        MOBILE["Mobile\n(planned)"]
+    end
+
+    subgraph shared["Shared in one Turborepo workspace"]
+        direction LR
+        TYPES["Shared Types\n& Business Logic"]
+        CONFIG["Shared Config\nTypeScript · Lint · Build"]
+    end
+
+    SUPABASE["Supabase\nAuth + Postgres\n(planned)"]
+
+    API --> TYPES & CONFIG
+    MCP --> TYPES & CONFIG
+    MOBILE -.-> TYPES & CONFIG
+    API -.->|"planned"| SUPABASE
+    MOBILE -.->|"planned — direct auth"| SUPABASE
+
+    classDef projected stroke-dasharray: 5 5
+    class MOBILE,SUPABASE projected
+```
+
+**Note:** the Docker deploy path (`Dockerfile.api`, `Dockerfile.mcp`) bypasses `turbo build` and calls `pnpm --filter @chronicler/core build` directly — see SDD §7.3 for why.
+
+---
+
 ## MCP Server (deployed)
 
 Each AI client calls `create_audio_upload` to get a presigned R2 URL, uploads the audio file directly to R2, then calls `process_audio` to enqueue the job. The pipeline worker runs in-process alongside the HTTP server.
