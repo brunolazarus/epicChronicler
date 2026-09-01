@@ -1,8 +1,8 @@
 # Chronicler — Software Design Document (SDD)
 
-**Version:** 0.6  
+**Version:** 0.7  
 **Date:** July 2026  
-**Status:** Active — Phase 0 complete; MCP server deployed and working in production (Phase 1 complete)
+**Status:** Active — Phase 0 complete; MCP server deployed and working in production (Phase 1 complete). Direction change: group/multiplayer mechanic moved to backlog, single-user experience is now the near-term focus — see §2.
 
 ---
 
@@ -10,6 +10,7 @@
 
 | Version | Date | Summary |
 |---|---|---|
+| 0.7 | 2026-07-28 | Direction change: groups/multi-perspective merging/TLDR/push notifications moved from MVP scope to backlog (§2) — no monetization intent, and account gating conflicts with the low-friction positioning validated in Phase 1. Phase 2 (§12) is under revision toward a single-user-first plan. |
 | 0.6 | 2026-07-16 | Documented monorepo build tooling (§7.3): Turborepo rationale, current vs. projected task coverage, known gap with the Docker deploy path; added workspace/build-graph diagram to `docs/architecture.md` |
 | 0.5 | 2026-06-19 | Queue architecture refactor: `apps/worker` deleted; each app runs its own BullMQ workers in-process; Redis key prefix isolation (`mcp:`, `web:`) enforces ownership; MCP server now uses R2 for audio upload/download; both services confirmed working in production |
 | 0.4 | 2026-06-09 | Added MCP server as Phase 1; postponed Expo to Phase 3+; updated tech stack to actual providers (Groq Whisper, Kokoro 82M via OpenRouter); added `packages/core` service isolation to architecture |
@@ -53,16 +54,23 @@ Friend groups share experiences constantly, but have no good way to preserve the
 
 ## 2. Goals & Non-Goals
 
+**Direction change (2026-07-28):** the group/multi-perspective mechanic is deprioritized to backlog, not abandoned. Reasoning: there's no monetization intent, so the usage-limiting and account-gating that groups implied has no real purpose; and requiring an account is exactly the kind of friction that works against the "try it in 30 seconds" positioning the web demo and MCP server already validated in Phase 1. Current focus is a better single-user experience — record, retell, listen — with no login required.
+
 ### In Scope (MVP)
 
-- [ ] Users can create accounts and join friend groups
-- [ ] Members record voice stories tied to a group event
-- [ ] AI transcribes audio to text (Whisper)
-- [ ] AI retells the story in a chosen "flavour" (narrative style)
-- [ ] Multiple members contribute perspectives on the same event; they are merged into one chronicle
-- [ ] TTS narrates the final chronicle aloud
-- [ ] TLDR generator summarizes group history for new members
-- [ ] Push notifications for new chronicles and new perspectives
+- [x] Users can record a voice story, no account required
+- [x] AI transcribes audio to text (Whisper)
+- [x] AI retells the story in a chosen "flavour" (narrative style)
+- [x] TTS narrates the final chronicle aloud
+- [ ] Users can save and revisit their own past chronicles
+
+### Backlog (deprioritized, not abandoned)
+
+- Accounts and friend groups
+- Multiple members contribute perspectives on the same event; merged into one chronicle
+- TLDR generator summarizing group history for new members
+- Push notifications (chronicle ready, new perspective, group invites)
+- Group roles (Owner/Member), invite links, contributor caps
 
 ### Out of Scope (Post-MVP)
 
@@ -569,8 +577,10 @@ Chronicles:
 
 ---
 
-### Phase 2 — Backend Foundation
+### Phase 2 — Backend Foundation ⚠️ Under revision (2026-07-28)
 **Goal:** Full production API built on top of the proven pipeline; no mobile code yet.
+
+**This phase as written below assumes the groups/multiplayer mechanic, which is now backlog (§2).** Most of the checklist below exists to serve groups (auth, roles, invite links, contributor caps) and no longer reflects the near-term plan. Left in place as a record of the original design until the single-user-first replacement plan is written.
 
 - [ ] Supabase Auth middleware integrated into Hono (JWT validation)
 - [ ] User registration, login, OAuth (Google + Apple) endpoints

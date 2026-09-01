@@ -1,0 +1,24 @@
+{
+  "name": "@chronicler/api-client",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    }
+  },
+  "scripts": {
+    "generate": "openapi-typescript http://localhost:3000/openapi.json -o src/types.gen.ts",
+    "build": "tsup src/client.ts --format esm --dts --out-dir dist",
+    "check-drift": "openapi-typescript http://localhost:3000/openapi.json -o /tmp/types.gen.check.ts && diff src/types.gen.ts /tmp/types.gen.check.ts"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.13.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.4.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0"
+  }
+}

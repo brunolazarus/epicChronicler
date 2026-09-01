@@ -6,7 +6,9 @@ FROM base AS deps
 WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/core/package.json ./packages/core/
+COPY packages/api-client/package.json ./packages/api-client/
 COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
 COPY scripts/package.json ./scripts/
 RUN pnpm install --frozen-lockfile
 
@@ -15,9 +17,13 @@ FROM base AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/core/node_modules ./packages/core/node_modules
+COPY --from=deps /app/packages/api-client/node_modules ./packages/api-client/node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
 RUN pnpm --filter @chronicler/core build
+RUN pnpm --filter @chronicler/api-client build
+RUN pnpm --filter web build
 
 # ── runner ────────────────────────────────────────────────────────────────────
 FROM base AS runner
@@ -26,6 +32,7 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY --from=build /app/packages/core ./packages/core
 COPY --from=build /app/apps/api ./apps/api
+COPY --from=build /app/apps/web/dist ./apps/web/dist
 COPY --from=deps /app/node_modules ./node_modules
 
 EXPOSE 3000

@@ -4,8 +4,12 @@ dist/
 .env.local
 .DS_Store
 *.log
+*.tsbuildinfo
 recording.m4a
+dump.rdb
 .claude/
 .turbo/
 test-results/
 playwright-report/
+docs/devlog/assets/2026-07-cost-post/
+docs/standards/design_handoff_epic_chronicler/

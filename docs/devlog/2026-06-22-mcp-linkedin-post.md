@@ -1,9 +1,19 @@
 # LinkedIn Post 2 — MCP Server & Getting to Users Fast
 
 **Date:** 2026-06-22
-**Maps to:** DEVLOG 2026-06-09 (MCP server — decisions, Smithery pivot, two surfaces)
-**Status:** Draft
-**Previous post:** [paste link here]
+**Maps to:** Roadmap Post 2 — combined the originally-planned web-demo-spike post and MCP-server post into one, framed around skipping the backend. Decision background: [2026-06-09-mcp.md](2026-06-09-mcp.md)
+**Status:** Published — [DATE NEEDED] — [LINK NEEDED]
+**Previous post:** [2026-06-03-kickoff.md](2026-06-03-kickoff.md)
+
+---
+
+## As published
+
+The opening ran leaner than the draft below — no title-option framing, different TLDR:
+
+> Hey everyone, a few weeks have passed since the last update, but I'm back.
+>
+> TL;DR: Instead of building the backend I had planned, I focused on getting the core experience into users' hands as quickly as possible. This post is about that decision and what I'm hoping to learn from it. Try it here epicchronicler.com
 
 ---
 
