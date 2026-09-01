@@ -19,19 +19,29 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
   const next = () => selectFlavour(flavours[(activeIndex + 1) % flavours.length].key)
 
   const downX = useRef<number | null>(null)
+  const swiped = useRef(false)
   const onPointerDown = (e: React.PointerEvent) => { downX.current = e.clientX }
   const onPointerUp = (e: React.PointerEvent) => {
     if (downX.current === null) return
     const dx = e.clientX - downX.current
     downX.current = null
-    if (dx > 40) prev()
-    else if (dx < -40) next()
+    if (Math.abs(dx) <= 40) return
+    swiped.current = true
+    if (dx > 0) prev()
+    else next()
+  }
+
+  const onCardClick = (key: string) => {
+    if (swiped.current) {
+      swiped.current = false
+      return
+    }
+    selectFlavour(key)
   }
 
   return (
     <div className="relative overflow-hidden pt-[34px] pb-11">
       <div
-        data-flavour={selectedFlavour ?? 'medieval'}
         className="pointer-events-none absolute -bottom-60 left-1/2 h-[500px] w-[min(1000px,140vw)] -translate-x-1/2 rounded-full transition-[background] duration-500"
         style={{ background: 'radial-gradient(ellipse at center, var(--accent-soft) 0%, transparent 66%)' }}
       />
@@ -48,12 +58,18 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
             className="flex-1 overflow-hidden py-2.5"
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
+            onPointerCancel={() => { downX.current = null }}
           >
             <div
-              className="flex gap-[18px] [--card-step:194px] md:[--card-step:276px] motion-reduce:transition-none"
+              className={[
+                'flex gap-[18px]',
+                '[--card-w:160px] [--card-step:178px]',
+                'sm:[--card-w:176px] sm:[--card-step:194px]',
+                'md:[--card-w:258px] md:[--card-step:276px]',
+                'transition-transform duration-[450ms] ease-[cubic-bezier(.22,.8,.26,1)] motion-reduce:transition-none',
+              ].join(' ')}
               style={{
-                transform: `translateX(calc(50% - (${activeIndex} + 0.5) * var(--card-step)))`,
-                transition: 'transform .45s cubic-bezier(.22,.8,.26,1)',
+                transform: `translateX(calc(50% - var(--card-w) / 2 - ${activeIndex} * var(--card-step)))`,
               }}
             >
               {flavours.map((f) => {
@@ -65,10 +81,10 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
                     data-flavour={f.key}
                     role="button"
                     tabIndex={0}
-                    onClick={() => selectFlavour(f.key)}
+                    onClick={() => onCardClick(f.key)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectFlavour(f.key) } }}
                     className={[
-                      'w-44 md:w-[258px] shrink-0 cursor-pointer rounded-xl p-5',
+                      'w-40 sm:w-44 md:w-[258px] shrink-0 cursor-pointer rounded-xl p-5',
                       'transition-all duration-[450ms] ease-[cubic-bezier(.22,.8,.26,1)] motion-reduce:transition-none',
                       selected
                         ? 'scale-100 opacity-100 border border-accent bg-accent-ghost shadow-[0_0_44px_var(--accent-soft)]'
@@ -89,7 +105,7 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
           <Button variant="outline" size="icon" aria-label="Next narrator" onClick={next} className="shrink-0 border-line-muted text-fg-soft">›</Button>
         </div>
 
-        <div data-flavour={selectedFlavour ?? 'medieval'} className="mt-5 flex justify-center gap-1.5">
+        <div className="mt-5 flex justify-center gap-1.5">
           {flavours.map((f, i) => (
             <div
               key={f.key}

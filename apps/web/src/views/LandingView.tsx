@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Card } from '@/components/ui/card.js'
 import { getFlavourTheme } from '../theme.js'
 import { buildScene } from '../scenes.js'
 import { RecordRing } from './RecordRing.js'
@@ -164,8 +165,8 @@ export function LandingView({
               />
             ))}
           </div>
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(10,11,16,.88) 0%, rgba(10,11,16,.6) 46%, transparent 72%)' }} />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 60%, rgba(22,24,38,.85) 100%)' }} />
+          <div className="absolute inset-0 [background:linear-gradient(90deg,rgba(10,11,16,.88)_0%,rgba(10,11,16,.6)_46%,transparent_72%)]" />
+          <div className="absolute inset-0 [background:linear-gradient(180deg,transparent_60%,rgba(22,24,38,.85)_100%)]" />
         </div>
 
         <div className="relative grid grid-cols-1 items-center gap-10 px-6 py-14 md:h-full md:grid-cols-[1.15fr_.85fr] md:px-12 md:py-0">
@@ -182,7 +183,7 @@ export function LandingView({
               <button
                 type="button"
                 onClick={openFilePicker}
-                className="cursor-pointer bg-transparent p-0 text-fg underline underline-offset-[3px]"
+                className="cursor-pointer text-fg underline underline-offset-[3px]"
               >
                 upload a file
               </button>
@@ -231,9 +232,11 @@ export function LandingView({
         <NarratorCarousel flavours={flavours} selectedFlavour={selectedFlavour} selectFlavour={selectFlavour} />
       </div>
 
-      <div className="mx-auto mb-[60px] box-border max-w-[1280px] rounded-card border border-line bg-panel p-7" id="how-it-works">
-        <div className="mb-4 font-mono text-[11px] uppercase tracking-[.14em] text-fg-faint">A story, told</div>
-        <div className="whitespace-pre-wrap text-[15px] leading-[1.8] text-fg-dim">{SAMPLE_CHRONICLE}</div>
+      <div className="mx-auto mb-[60px] max-w-[1280px] px-6 md:px-12">
+        <Card className="p-7" id="how-it-works">
+          <div className="mb-4 font-mono text-[11px] uppercase tracking-[.14em] text-fg-faint">A story, told</div>
+          <div className="whitespace-pre-wrap text-[15px] leading-[1.8] text-fg-dim">{SAMPLE_CHRONICLE}</div>
+        </Card>
       </div>
     </div>
   )

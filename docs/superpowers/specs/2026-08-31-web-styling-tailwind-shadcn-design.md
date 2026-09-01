@@ -60,21 +60,28 @@ Add `tailwindcss@4` and `@tailwindcss/vite`. Register the plugin in `apps/web/vi
   --color-text-muted: #9397ab;
   --color-text-faint: #595d6c;
 
-  /* accent + error resolve to runtime CSS vars (4.2) */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-card: 14px;
+}
+
+/* accent + error resolve to runtime CSS vars (4.2).
+   `@theme inline` is required, not plain `@theme`: plain `@theme` declares
+   --color-accent: var(--accent) once at :root, so the utility emits
+   `background-color: var(--color-accent)` and the indirection resolves a single
+   time — redefining --accent on [data-flavour="…"] never re-resolves it.
+   `inline` makes Tailwind inline the token, so the utility emits
+   `background-color: var(--accent)` and re-resolves per element. */
+@theme inline {
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-ghost: var(--accent-ghost);
-  --color-accent-line: var(--accent-line);
   --color-error: var(--error);
   --color-error-soft: var(--error-soft);
   --color-error-ghost: var(--error-ghost);
   --color-error-line: var(--error-line);
   --color-error-text: var(--error-text);
-
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-
-  --radius-card: 14px;
 }
 
 @layer base {
@@ -86,11 +93,13 @@ Add `tailwindcss@4` and `@tailwindcss/vite`. Register the plugin in `apps/web/vi
     font-family: var(--font-sans);
     min-height: 100%;
   }
-  a { color: var(--color-accent); }
-  a:hover { color: color-mix(in srgb, var(--color-accent) 78%, white); }
+  /* hand-written base rules reference the runtime var directly, not the
+     --color-* alias, so they re-resolve per [data-flavour] like the utilities */
+  a { color: var(--accent); }
+  a:hover { color: color-mix(in srgb, var(--accent) 78%, white); }
 
   :where(a, button, [role="button"], input, textarea, select):focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 }
@@ -175,7 +184,7 @@ Run `shadcn init` targeting `apps/web`, components at `apps/web/src/components/u
 | `Textarea` | ReviewStep's raw `<textarea>` |
 | `Card` | the repeated `1px border / radius-card / bg-panel` panel in `ProcessingView`, `ReviewStep`, `LandingView` "how it works", `NoticeCard`, `EmptyStateShell` |
 
-shadcn's generated tokens (`--background`, `--foreground`, `--primary`, `--ring`, …) are mapped onto the Nocturne `@theme` values so the primitives inherit the dark ground and accent automatically. `Button` variants are trimmed to what is used (`default`, `outline`, `ghost`); unused variants deleted per "no dead code."
+shadcn's generated tokens (`--background`, `--foreground`, `--primary`, `--ring`, …) are mapped onto the Nocturne `@theme` values so the primitives inherit the dark ground and accent automatically. `Button` variants are trimmed to what is used (`outline` — the default, `ghost`, `error`); unused variants deleted per "no dead code."
 
 Not added: `Dialog`, shadcn `Carousel`, `Tabs`, `Sonner`. `NarratorCarousel`, `RecordRing`, the progress bars, and the scene layer remain hand-built — they are too specific to the design to benefit from a generic primitive.
 
@@ -196,7 +205,7 @@ Every existing `data-testid` is preserved on the same semantic element. Where a 
 
 ### 4.6 Accessibility
 
-- `:focus-visible` ring: `2px solid var(--color-accent)`, `2px` offset — defined once in the base layer (4.1), applies to all interactive elements. Elements currently rendered as `<div role="button">` that become `<Button>` get real keyboard focus for free; any that stay as `<div role="button">` get `tabIndex={0}` + `onKeyDown` Enter/Space, or are converted to `<button>`.
+- `:focus-visible` ring: `2px solid var(--accent)`, `2px` offset — defined once in the base layer (4.1), applies to all interactive elements. Elements currently rendered as `<div role="button">` that become `<Button>` get real keyboard focus for free; any that stay as `<div role="button">` get `tabIndex={0}` + `onKeyDown` Enter/Space, or are converted to `<button>`.
 - `prefers-reduced-motion`: `recpulse` and `ringout` are disabled under the media query (4.1). The carousel track transition also respects it.
 
 ## 5. Sequencing

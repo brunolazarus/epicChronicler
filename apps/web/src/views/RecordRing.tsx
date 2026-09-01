@@ -22,7 +22,11 @@ export function RecordRing({ micError, isRecording, onStart, onStop, onUploadIns
             ;(isRecording ? onStop : onStart)()
           }
         }}
-        className={cnRing(micError)}
+        className={[
+          'relative flex items-center justify-center',
+          'h-[clamp(160px,44vw,200px)] w-[clamp(160px,44vw,200px)]',
+          micError ? 'cursor-default' : 'cursor-pointer',
+        ].join(' ')}
       >
         <div
           className="absolute -inset-6 rounded-full"
@@ -60,7 +64,7 @@ export function RecordRing({ micError, isRecording, onStart, onStop, onUploadIns
             Allow microphone access for this site in your browser settings, then try again.
           </p>
           <div className="flex gap-2">
-            <Button variant="default" size="sm" onClick={onRetryMic} className="border-error bg-error-ghost text-error-fg">
+            <Button variant="error" size="sm" onClick={onRetryMic}>
               Try again
             </Button>
             <Button variant="ghost" size="sm" onClick={onUploadInstead}>Upload a file</Button>
@@ -69,12 +73,4 @@ export function RecordRing({ micError, isRecording, onStart, onStop, onUploadIns
       )}
     </div>
   )
-}
-
-function cnRing(micError: boolean) {
-  return [
-    'relative flex items-center justify-center',
-    'h-[clamp(160px,44vw,200px)] w-[clamp(160px,44vw,200px)]',
-    micError ? 'cursor-default' : 'cursor-pointer',
-  ].join(' ')
 }

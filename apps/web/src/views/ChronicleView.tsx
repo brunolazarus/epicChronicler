@@ -1,3 +1,4 @@
+import { Card } from '@/components/ui/card.js'
 import { EmptyStateShell } from './EmptyStateShell.js'
 import { getFlavourTheme } from '../theme.js'
 
@@ -21,7 +22,7 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
 
   return (
     <div className="mx-auto my-[60px] max-w-[1080px] px-6 md:px-12">
-      <div className="overflow-hidden rounded-card border border-line bg-surface">
+      <Card className="overflow-hidden bg-surface">
         <div className="grid grid-cols-1 md:grid-cols-[320px_1fr]">
           <div className="border-b border-line bg-panel p-6 md:border-b-0 md:border-r">
             <div className="mb-[18px] font-mono text-[10.5px] uppercase tracking-[.14em] text-fg-faint">What you said</div>
@@ -61,7 +62,7 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

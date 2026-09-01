@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button.js'
+import { Card } from '@/components/ui/card.js'
 
 function ClockIcon({ className }: { className?: string }) {
   return (
@@ -35,7 +36,7 @@ export function EmptyStateShell({ kind, jobId, onPrimary }: {
   const markColor = isExpired ? 'text-fg-muted' : 'text-error'
 
   return (
-    <div className="mx-auto my-16 w-full max-w-[560px] overflow-hidden rounded-card border border-line bg-surface shadow-[0_16px_40px_rgba(0,0,0,.45)]">
+    <Card className="mx-auto my-16 w-full max-w-[560px] overflow-hidden bg-surface shadow-[0_16px_40px_rgba(0,0,0,.45)]">
       <div className="flex gap-6 border-b border-line bg-panel-raised px-6 font-mono text-[11.5px]">
         <div className="py-3.5 text-fg-faint">transcript + chronicle</div>
         <div className="py-3.5 text-fg-faint">audio</div>
@@ -58,11 +59,7 @@ export function EmptyStateShell({ kind, jobId, onPrimary }: {
         <p className="mb-2 max-w-[400px] text-sm leading-[1.7] text-fg-soft">{body}</p>
         <p className="mb-[26px] font-mono text-[11.5px] leading-[1.6] text-fg-muted">{detail}</p>
         <div className="flex flex-wrap items-center justify-center gap-2.5">
-          <Button
-            variant={isExpired ? 'outline' : 'default'}
-            onClick={onPrimary}
-            className={isExpired ? 'border-fg-soft' : 'border-error bg-error-ghost text-error-fg'}
-          >
+          <Button variant={isExpired ? 'outline' : 'error'} onClick={onPrimary}>
             {ctaLabel}
           </Button>
           {!isExpired && (
@@ -70,6 +67,6 @@ export function EmptyStateShell({ kind, jobId, onPrimary }: {
           )}
         </div>
       </div>
-    </div>
+    </Card>
   )
 }

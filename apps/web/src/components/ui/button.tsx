@@ -7,7 +7,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border border-accent bg-accent-ghost text-fg hover:bg-accent-soft',
+        error: 'border border-error bg-error-ghost text-error-fg hover:bg-error-soft',
         outline: 'border border-fg-soft bg-transparent text-fg hover:bg-white/5',
         ghost: 'text-fg-soft hover:text-fg hover:bg-white/5',
       },
@@ -17,7 +17,7 @@ const buttonVariants = cva(
         icon: 'h-9 w-9 p-0 text-base',
       },
     },
-    defaultVariants: { variant: 'default', size: 'default' },
+    defaultVariants: { variant: 'outline', size: 'default' },
   },
 )
 

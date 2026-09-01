@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button.js'
+import { Card } from '@/components/ui/card.js'
 
 type StageKey = 'transcribe' | 'rewrite' | 'narrate'
 type StageStatus = 'done' | 'active' | 'queued' | 'failed' | 'blocked'
@@ -37,7 +38,7 @@ export function ProcessingView({ stages, transcriptionMs, flavourKey, voice, gen
 
   return (
     <div className="mx-auto my-16 max-w-[760px] px-6 md:my-20 md:px-12">
-      <div className="overflow-hidden rounded-card border border-line shadow-[0_16px_40px_rgba(0,0,0,.45)]">
+      <Card className="overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,.45)]">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-panel-raised px-[22px] py-3.5">
           <span className="font-mono text-[12.5px] font-medium uppercase tracking-[.1em]">TELLING YOUR STORY</span>
           <div className={`flex items-center gap-[7px] font-mono text-[11px] ${hasFailure ? 'text-error-fg' : 'text-fg-muted'}`}>
@@ -83,11 +84,11 @@ export function ProcessingView({ stages, transcriptionMs, flavourKey, voice, gen
                   </div>
                   {stage.status === 'failed' && (
                     <div className="mt-3 rounded-r-lg border border-error-line border-l-2 border-l-error bg-error-ghost px-[15px] py-[13px]">
-                      <div className="mb-1.5 text-[12.5px] font-medium text-error-fg [font-family:var(--font-sans)]">
+                      <div className="mb-1.5 font-sans text-[12.5px] font-medium text-error-fg">
                         {STAGE_ERROR_TITLE[stage.key]}
                       </div>
-                      <p className="mb-3 text-xs leading-[1.6] text-fg-soft [font-family:var(--font-sans)]">{generateError}</p>
-                      <Button size="sm" onClick={onRetry} className="border-error bg-error-ghost text-error-fg [font-family:var(--font-sans)]">
+                      <p className="mb-3 font-sans text-xs leading-[1.6] text-fg-soft">{generateError}</p>
+                      <Button variant="error" size="sm" onClick={onRetry} className="font-sans">
                         {STAGE_RETRY_LABEL[stage.key]}
                       </Button>
                     </div>
@@ -106,7 +107,7 @@ export function ProcessingView({ stages, transcriptionMs, flavourKey, voice, gen
             ))}
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

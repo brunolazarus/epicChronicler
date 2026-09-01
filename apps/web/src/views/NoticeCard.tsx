@@ -4,12 +4,12 @@ function WarningIcon() {
   return (
     <svg
       width={18} height={18} viewBox="0 0 256 256" fill="none"
-      stroke="var(--error)" strokeWidth={16} strokeLinecap="round" strokeLinejoin="round"
+      stroke="currentColor" strokeWidth={16} strokeLinecap="round" strokeLinejoin="round"
       className="block shrink-0"
     >
       <circle cx={128} cy={128} r={96} />
       <line x1={128} y1={76} x2={128} y2={140} />
-      <circle cx={128} cy={176} r={8} fill="var(--error)" stroke="none" />
+      <circle cx={128} cy={176} r={8} fill="currentColor" stroke="none" />
     </svg>
   )
 }
@@ -27,7 +27,7 @@ export function NoticeCard({ title, body, detail, onPrimary, primaryLabel, onSec
     <div className="w-full max-w-full overflow-hidden rounded-lg border border-error-line bg-panel">
       <div className="h-0.5 bg-gradient-to-r from-error to-transparent" />
       <div className="flex items-start gap-[14px] px-5 py-4">
-        <div className="mt-px flex shrink-0 [filter:drop-shadow(0_0_8px_var(--error-soft))]">
+        <div className="mt-px flex shrink-0 text-error [filter:drop-shadow(0_0_8px_var(--error-soft))]">
           <WarningIcon />
         </div>
         <div className="flex-1">
@@ -37,7 +37,7 @@ export function NoticeCard({ title, body, detail, onPrimary, primaryLabel, onSec
             {detail}
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={onPrimary} className="border-error bg-error-ghost text-error-fg">
+            <Button variant="error" size="sm" onClick={onPrimary}>
               {primaryLabel}
             </Button>
             <Button variant="ghost" size="sm" onClick={onSecondary}>{secondaryLabel}</Button>
