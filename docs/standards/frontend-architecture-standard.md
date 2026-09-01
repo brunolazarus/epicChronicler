@@ -18,7 +18,7 @@ apps/
 packages/
   api-client/  # Generated TypeScript types + typed fetch client — THE shared interface artifact
   core/        # Shared MVP "Model" layer — TanStack Query hooks, calls packages/api-client only
-  ui/          # Shared UI primitives (e.g. shadcn/ui for web, NativeWind for mobile)
+  ui/          # Shared UI primitives (e.g. shadcn/ui for web, NativeWind for mobile) — see §4 Styling
 ```
 
 Stack endorsements this standard is built around: **React**, **TanStack Query**, **Turborepo**, **Zod**. These aren't "or equivalent" placeholders, they're the actual choices, one monorepo (Turborepo), not separate repos per app. The payoff is the shared `api-client` and `core` packages — splitting the repo loses that for no benefit at this scale.
@@ -48,7 +48,18 @@ Stack endorsements this standard is built around: **React**, **TanStack Query**,
 
 ---
 
-## 4. Data flow
+## 4. Styling
+
+- **Utility-first with Tailwind.** No per-component `.css` / `.module.css` files, no CSS-in-JS. Styling is Tailwind utility classes in the View layer. Tailwind v4's CSS-first config (`@theme` in one entry stylesheet) is the endorsed setup — no `tailwind.config.js`.
+- **`style={{}}` is reserved for computed geometry** — values a component calculates at runtime (generative scene coordinates, a progress-bar width, a gradient that interpolates a token). Design values — colour, spacing, radius, type scale — are never inline.
+- **Design tokens are CSS custom properties**, declared once in the Tailwind `@theme` and consumed through utilities. No hardcoded hex, px spacing, or font stacks in components.
+- **Runtime theming** (dark/light, per-flavour, per-tenant) is a `data-*` attribute on a wrapper element driving a CSS-variable cascade — **not** a value threaded through component props. A component reacts to theme by using a token utility whose variable is redefined upstream; to show a *sibling's* theme (e.g. a picker listing every option), put the `data-*` attribute on that element's own subtree.
+- **shadcn/ui for primitives.** Generated (or hand-written to match) into the consuming app at `apps/<app>/src/components/ui/`, with shadcn's tokens mapped to the project `@theme`. Unused variants are deleted. A primitive is promoted to `packages/ui` only when a *second* app consumes it — the same promotion rule as Model hooks (§2).
+- **Accessibility is not optional:** a visible `:focus-visible` ring on every interactive element, and `prefers-reduced-motion` honoured by every non-essential animation.
+
+---
+
+## 5. Data flow
 
 ```
 View
@@ -64,7 +75,7 @@ View
 
 ---
 
-## 5. Error and loading handling
+## 6. Error and loading handling
 
 - Models use suspense-style query hooks (e.g. TanStack Query v5's `useSuspenseQuery`), not manual `isLoading`/`isError` branches in component bodies.
 - Loading state: wrap Views in a `<Suspense fallback={...}>` at the feature-section level, not per-component. One meaningful loading boundary per section of a screen, not one per query.
@@ -75,7 +86,7 @@ View
 
 ---
 
-## 6. Testing philosophy
+## 7. Testing philosophy
 
 - **Contract drift is the primary risk this pattern is designed against**, not runtime bugs in any one layer. The enforcement point is a CI job that regenerates `packages/api-client` from the live backend and diffs it against what's committed; any undeclared change to the backend's real response shape fails the build.
 - **Schema validation is inherent to the stack choice, not an added task.** Zod validates every request and response against its schema as part of normal request handling, a route that returns something violating its own declared schema fails in dev/test for free, no separate contract-testing tool required for that layer.
@@ -87,4 +98,4 @@ View
 ## When this standard doesn't apply
 
 - A genuinely single-surface app (one frontend, no mobile counterpart planned) doesn't need the monorepo/shared-package structure, apply the MVP layering and Suspense-first error handling within a single app instead.
-- A backend stack that can't validate request/response shape with Zod (or an equivalent schema-first validator) loses the "schema validation is free" property in §6, decide explicitly whether a separate contract-testing layer is worth adding to compensate.
+- A backend stack that can't validate request/response shape with Zod (or an equivalent schema-first validator) loses the "schema validation is free" property in §7, decide explicitly whether a separate contract-testing layer is worth adding to compensate.

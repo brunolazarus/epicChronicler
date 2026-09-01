@@ -149,6 +149,7 @@ The MCP server is deployable to Railway with a single click:
 | Layer | Technology |
 |---|---|
 | Mobile | React Native (Expo) |
+| Web frontend | React + Vite, Tailwind v4 (CSS-first `@theme`, no config file), shadcn/ui |
 | Backend | Hono + TypeScript (Node.js) |
 | Database + Auth | Supabase (PostgreSQL) |
 | File storage | Cloudflare R2 |
@@ -226,7 +227,8 @@ The MCP server starts on port 3001 and includes the pipeline worker in-process. 
 
 ```
 apps/
-├── api/          # Hono REST API — routes, queues, web test rig; runs transcription + chronicle workers in-process
+├── api/          # Hono REST API — routes, queues; serves the built web app; runs transcription + chronicle workers in-process
+├── web/          # React + Vite frontend — Tailwind v4 (@theme), shadcn/ui primitives in src/components/ui/
 └── mcp/          # MCP server — exposes pipeline as tools over HTTP; runs pipeline worker in-process
 
 packages/
@@ -259,6 +261,7 @@ Full reasoning behind every architectural choice is in [`docs/SDD.md`](docs/SDD.
 - **Audio upload via presigned R2 URLs** — in the MCP flow, audio goes directly from the client to R2 without touching the server; keeps the HTTP server stateless
 - **Provider abstraction layer** — each AI capability has an interface; concrete providers are swappable without touching the rest of the codebase
 - **Model registries in `packages/core`** — TTS and LLM models are named entries in a registry; switching providers or models is a one-line change, no tool logic to touch
+- **`apps/web` styling: Tailwind v4 + shadcn/ui** — CSS-first `@theme` tokens with no `tailwind.config.js`; primitives live in `apps/web/src/components/ui/`. Per-flavour theming is a `data-flavour` attribute driving a CSS-variable cascade, not a value threaded through component props
 
 ---
 
