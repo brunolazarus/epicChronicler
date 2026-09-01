@@ -116,13 +116,13 @@ export function LandingView({
   const showNotice = !micError && !!notice && !uploadNoticeDismissed
 
   return (
-    <div style={{ background: '#0a0b10', minHeight: '100vh' }}>
+    <div className="min-h-screen bg-abyss">
       <input
         ref={fileInputRef}
         type="file"
         data-testid="audio-file"
         accept="audio/*"
-        style={{ display: 'none' }}
+        className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0]
           setUploadNoticeDismissed(false)
@@ -130,97 +130,66 @@ export function LandingView({
         }}
       />
 
-      <header
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px 48px', maxWidth: 1280, margin: '0 auto',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--accent)', boxShadow: '0 0 12px var(--accent)' }} />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 13, letterSpacing: '.13em', textTransform: 'uppercase', color: '#e9e9ed' }}>
-            Chronicler
-          </span>
+      <header className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-5 md:px-12">
+        <div className="flex items-center gap-2.5">
+          <div className="h-[9px] w-[9px] rounded-[2px] bg-accent shadow-[0_0_12px_var(--accent)]" />
+          <span className="text-[13px] font-medium uppercase tracking-[.13em] text-fg">Chronicler</span>
         </div>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <a href="#how-it-works" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12.5px', color: '#9397ab', textDecoration: 'none' }}>
-            How it works
-          </a>
-          <a href={MCP_URL} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12.5px', color: '#9397ab', textDecoration: 'none' }}>
-            MCP server
-          </a>
-          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'Inter, sans-serif', fontSize: '12.5px', color: '#9397ab', textDecoration: 'none' }}>
-            GitHub
-          </a>
+        <nav className="hidden items-center gap-6 sm:flex">
+          <a href="#how-it-works" className="text-[12.5px] text-fg-muted no-underline">How it works</a>
+          <a href={MCP_URL} target="_blank" rel="noopener noreferrer" className="text-[12.5px] text-fg-muted no-underline">MCP server</a>
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="text-[12.5px] text-fg-muted no-underline">GitHub</a>
         </nav>
       </header>
 
-      <div style={{ position: 'relative', height: 420, overflow: 'hidden', maxWidth: 1280, margin: '0 auto' }}>
-        <div
-          style={{
-            position: 'absolute', left: '50%', top: '30%', width: 900, height: 300,
-            transform: 'translate(-50%, -30%) scale(1.4)', transformOrigin: '50% 30%',
-          }}
-        >
-          {scene.map((s, i) => (
-            <div
-              key={i}
-              style={{
-                position: 'absolute', left: s.l, top: s.t, width: s.w, height: s.h,
-                background: s.bg, borderRadius: s.r, boxShadow: s.sh, transform: s.tf,
-                opacity: s.o, filter: s.fl,
-              }}
-            />
-          ))}
+      <div className="relative mx-auto max-w-[1280px] overflow-hidden md:h-[420px]">
+        <div className="hidden md:block">
+          <div className="pointer-events-none absolute left-1/2 top-[30%] h-[300px] w-[900px] origin-[50%_30%] -translate-x-1/2 -translate-y-[30%] scale-[1.15] lg:scale-[1.4]">
+            {scene.map((s, i) => (
+              <div
+                key={i}
+                className="absolute"
+                style={{
+                  left: s.l,
+                  top: s.t,
+                  width: s.w,
+                  height: s.h,
+                  background: s.bg,
+                  borderRadius: s.r,
+                  boxShadow: s.sh,
+                  transform: s.tf,
+                  opacity: s.o,
+                  filter: s.fl,
+                }}
+              />
+            ))}
+          </div>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(10,11,16,.88) 0%, rgba(10,11,16,.6) 46%, transparent 72%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 60%, rgba(22,24,38,.85) 100%)' }} />
         </div>
-        <div
-          style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(90deg, rgba(10,11,16,.88) 0%, rgba(10,11,16,.6) 46%, transparent 72%)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(180deg, transparent 60%, rgba(22,24,38,.85) 100%)',
-          }}
-        />
 
-        <div
-          style={{
-            position: 'relative', height: '100%', display: 'grid',
-            gridTemplateColumns: '1.15fr .85fr', alignItems: 'center', gap: 40,
-            padding: '0 48px',
-          }}
-        >
+        <div className="relative grid grid-cols-1 items-center gap-10 px-6 py-14 md:h-full md:grid-cols-[1.15fr_.85fr] md:px-12 md:py-0">
           <div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 16 }}>
-              No login · nothing kept
-            </div>
-            <h1
-              style={{
-                fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 52, lineHeight: 1.04,
-                letterSpacing: '-.03em', textWrap: 'balance', maxWidth: 560, margin: 0,
-                textShadow: '0 2px 26px rgba(0,0,0,.85)', color: '#e9e9ed',
-              }}
-            >
+            <div className="mb-4 font-mono text-[11px] uppercase tracking-[.16em] text-accent">No login · nothing kept</div>
+            <h1 className="m-0 max-w-[560px] text-[32px] font-medium leading-[1.04] tracking-[-.03em] text-fg [text-shadow:0_2px_26px_rgba(0,0,0,.85)] [text-wrap:balance] md:text-[52px]">
               Every night out is a legend waiting for a narrator.
             </h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, lineHeight: 1.6, color: '#cfd3e5', maxWidth: 420, marginTop: 20 }}>
+            <p className="mt-5 max-w-[420px] text-base leading-[1.6] text-fg-dim">
               Talk for a minute. Slide below to choose who tells it back. English or Portuguese in — an English legend out, read aloud.
             </p>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13.5px', color: '#b2b6ca', marginTop: 14 }}>
+            <p className="mt-3.5 text-[13.5px] text-fg-soft">
               or{' '}
-              <span
-                role="button"
+              <button
+                type="button"
                 onClick={openFilePicker}
-                style={{ color: '#e9e9ed', textDecoration: 'underline', textUnderlineOffset: '3px', cursor: 'pointer' }}
+                className="cursor-pointer bg-transparent p-0 text-fg underline underline-offset-[3px]"
               >
                 upload a file
-              </span>
+              </button>
             </p>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+
+          <div className="flex justify-center">
             {micError ? (
               <RecordRing
                 micError
@@ -253,37 +222,18 @@ export function LandingView({
           </div>
         </div>
 
-        <div
-          style={{
-            position: 'absolute', right: 48, bottom: 14, textAlign: 'right',
-            fontFamily: "'JetBrains Mono', monospace", fontSize: 10, letterSpacing: '.08em', color: 'rgba(233,233,237,.5)',
-          }}
-        >
+        <div className="pointer-events-none absolute bottom-3.5 right-6 hidden text-right font-mono text-[10px] tracking-[.08em] text-fg/50 md:right-12 md:block">
           {theme.sceneLabel}
         </div>
       </div>
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 48px' }}>
+      <div className="mx-auto max-w-[1280px] px-6 md:px-12">
         <NarratorCarousel flavours={flavours} selectedFlavour={selectedFlavour} selectFlavour={selectFlavour} />
       </div>
 
-      <div
-        id="how-it-works"
-        style={{
-          background: '#131424', border: '1px solid #292b31', borderRadius: 14, padding: 28,
-          maxWidth: 1280, margin: '0 auto 60px', boxSizing: 'border-box',
-        }}
-      >
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#595d6c', marginBottom: 16 }}>
-          A story, told
-        </div>
-        <div
-          style={{
-            whiteSpace: 'pre-wrap', fontFamily: 'Inter, sans-serif', fontSize: 15, lineHeight: 1.8, color: '#cfd3e5',
-          }}
-        >
-          {SAMPLE_CHRONICLE}
-        </div>
+      <div className="mx-auto mb-[60px] box-border max-w-[1280px] rounded-card border border-line bg-panel p-7" id="how-it-works">
+        <div className="mb-4 font-mono text-[11px] uppercase tracking-[.14em] text-fg-faint">A story, told</div>
+        <div className="whitespace-pre-wrap text-[15px] leading-[1.8] text-fg-dim">{SAMPLE_CHRONICLE}</div>
       </div>
     </div>
   )
