@@ -1,9 +1,15 @@
-function WarningIcon({ color }: { color: string }) {
+import { Button } from '@/components/ui/button.js'
+
+function WarningIcon() {
   return (
-    <svg width={18} height={18} viewBox="0 0 256 256" fill="none" stroke={color} strokeWidth={16} strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', flex: 'none' }}>
+    <svg
+      width={18} height={18} viewBox="0 0 256 256" fill="none"
+      stroke="var(--error)" strokeWidth={16} strokeLinecap="round" strokeLinejoin="round"
+      className="block shrink-0"
+    >
       <circle cx={128} cy={128} r={96} />
       <line x1={128} y1={76} x2={128} y2={140} />
-      <circle cx={128} cy={176} r={8} fill={color} stroke="none" />
+      <circle cx={128} cy={176} r={8} fill="var(--error)" stroke="none" />
     </svg>
   )
 }
@@ -18,41 +24,23 @@ export function NoticeCard({ title, body, detail, onPrimary, primaryLabel, onSec
   secondaryLabel: string
 }) {
   return (
-    <div style={{ border: '1px solid var(--error-line)', borderRadius: 8, background: 'var(--color-panel)', overflow: 'hidden' }}>
-      <div style={{ height: 2, background: 'linear-gradient(90deg, var(--error), transparent)' }} />
-      <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-        <div style={{ flex: 'none', marginTop: 1, display: 'flex', color: 'var(--error)', filter: 'drop-shadow(0 0 8px var(--error-soft))' }}>
-          <WarningIcon color={'var(--error)'} />
+    <div className="w-full max-w-full overflow-hidden rounded-lg border border-error-line bg-panel">
+      <div className="h-0.5 bg-gradient-to-r from-error to-transparent" />
+      <div className="flex items-start gap-[14px] px-5 py-4">
+        <div className="mt-px flex shrink-0 [filter:drop-shadow(0_0_8px_var(--error-soft))]">
+          <WarningIcon />
         </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ marginBottom: 7 }}>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, color: 'var(--error-text)' }}>{title}</span>
-          </div>
-          <p style={{ margin: '0 0 10px', fontFamily: 'Inter, sans-serif', fontSize: 13, lineHeight: 1.65, color: 'var(--color-fg-soft)', maxWidth: 620 }}>
-            {body}
-          </p>
-          <div
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '9px 12px',
-              border: '1px solid var(--color-line)', borderRadius: 6, background: 'var(--color-surface)',
-              fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: 'var(--error-text)',
-            }}
-          >
+        <div className="flex-1">
+          <div className="mb-[7px] text-sm font-medium text-error-fg">{title}</div>
+          <p className="mb-2.5 max-w-[620px] text-[13px] leading-[1.65] text-fg-soft">{body}</p>
+          <div className="mb-[14px] flex items-center gap-2.5 rounded-md border border-line bg-surface px-3 py-[9px] font-mono text-[11.5px] text-error-fg">
             {detail}
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <div
-              onClick={onPrimary}
-              style={{ padding: '8px 15px', border: '1px solid var(--error)', borderRadius: 999, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '12.5px', color: 'var(--error-text)', background: 'var(--error-ghost)' }}
-            >
+          <div className="flex gap-2">
+            <Button size="sm" onClick={onPrimary} className="border-error bg-error-ghost text-error-fg">
               {primaryLabel}
-            </div>
-            <div
-              onClick={onSecondary}
-              style={{ padding: '8px 15px', borderRadius: 999, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '12.5px', color: 'var(--color-fg-soft)' }}
-            >
-              {secondaryLabel}
-            </div>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onSecondary}>{secondaryLabel}</Button>
           </div>
         </div>
       </div>
