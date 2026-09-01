@@ -1,5 +1,3 @@
-import { errorPalette } from '../theme.js'
-
 function ClockIcon({ color }: { color: string }) {
   return (
     <svg width={34} height={34} viewBox="0 0 256 256" fill="none" stroke={color} strokeWidth={16} strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', flex: 'none' }}>
@@ -24,30 +22,29 @@ export function EmptyStateShell({ kind, jobId, onPrimary }: {
   jobId: string
   onPrimary: () => void
 }) {
-  const e = errorPalette()
   const isExpired = kind === 'expired'
 
-  const ring = isExpired ? '#3f424d' : e.line
-  const glow = isExpired ? 'rgba(233,233,237,.06)' : e.soft
-  const markColor = isExpired ? '#9397ab' : e.base
+  const ring = isExpired ? 'var(--color-line-muted)' : 'var(--error-line)'
+  const glow = isExpired ? 'rgba(233,233,237,.06)' : 'var(--error-soft)'
+  const markColor = isExpired ? 'var(--color-fg-muted)' : 'var(--error)'
   const title = isExpired ? 'This session has ended' : 'Something went wrong'
   const body = isExpired
     ? 'Chronicler keeps nothing after you leave, so this chronicle is gone. Nothing was stored, and nothing was shared.'
     : "We couldn't finish telling your story. This one is on us — trying again usually works."
   const detail = isExpired ? `job ${jobId} · expired` : `job ${jobId} · error`
   const ctaLabel = isExpired ? 'Start a new chronicle' : 'Try again'
-  const ctaLine = isExpired ? '#b2b6ca' : e.base
-  const ctaText = isExpired ? '#e9e9ed' : e.text
-  const ctaFill = isExpired ? 'transparent' : e.ghost
-  const metaColor = isExpired ? '#9397ab' : e.text
+  const ctaLine = isExpired ? 'var(--color-fg-soft)' : 'var(--error)'
+  const ctaText = isExpired ? 'var(--color-fg)' : 'var(--error-text)'
+  const ctaFill = isExpired ? 'transparent' : 'var(--error-ghost)'
+  const metaColor = isExpired ? 'var(--color-fg-muted)' : 'var(--error-text)'
   const metaText = detail
 
   return (
-    <div style={{ maxWidth: 560, border: '1px solid #292b31', borderRadius: 14, background: '#161826', boxShadow: '0 16px 40px rgba(0,0,0,.45)', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', gap: 24, padding: '0 24px', borderBottom: '1px solid #292b31', background: '#1b1d2c', fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px' }}>
-        <div style={{ padding: '14px 0', color: '#595d6c' }}>transcript + chronicle</div>
-        <div style={{ padding: '14px 0', color: '#595d6c' }}>audio</div>
-        <div style={{ padding: '14px 0', color: '#595d6c' }}>share</div>
+    <div style={{ maxWidth: 560, border: '1px solid var(--color-line)', borderRadius: 14, background: 'var(--color-surface)', boxShadow: '0 16px 40px rgba(0,0,0,.45)', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', gap: 24, padding: '0 24px', borderBottom: '1px solid var(--color-line)', background: 'var(--color-panel-raised)', fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px' }}>
+        <div style={{ padding: '14px 0', color: 'var(--color-fg-faint)' }}>transcript + chronicle</div>
+        <div style={{ padding: '14px 0', color: 'var(--color-fg-faint)' }}>audio</div>
+        <div style={{ padding: '14px 0', color: 'var(--color-fg-faint)' }}>share</div>
         <div style={{ marginLeft: 'auto', padding: '14px 0', color: metaColor }}>{metaText}</div>
       </div>
       <div style={{ padding: '54px 40px 48px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -59,13 +56,13 @@ export function EmptyStateShell({ kind, jobId, onPrimary }: {
             {isExpired ? <ClockIcon color={markColor} /> : <WarningIcon color={markColor} />}
           </div>
         </div>
-        <h2 style={{ margin: '0 0 12px', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 24, lineHeight: 1.2, letterSpacing: '-.02em', color: '#e9e9ed' }}>
+        <h2 style={{ margin: '0 0 12px', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 24, lineHeight: 1.2, letterSpacing: '-.02em', color: 'var(--color-fg)' }}>
           {title}
         </h2>
-        <p style={{ margin: '0 0 8px', fontFamily: 'Inter, sans-serif', fontSize: 14, lineHeight: 1.7, color: '#b2b6ca', maxWidth: 400 }}>
+        <p style={{ margin: '0 0 8px', fontFamily: 'Inter, sans-serif', fontSize: 14, lineHeight: 1.7, color: 'var(--color-fg-soft)', maxWidth: 400 }}>
           {body}
         </p>
-        <p style={{ margin: '0 0 26px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', lineHeight: 1.6, color: '#9397ab' }}>
+        <p style={{ margin: '0 0 26px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', lineHeight: 1.6, color: 'var(--color-fg-muted)' }}>
           {detail}
         </p>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -78,7 +75,7 @@ export function EmptyStateShell({ kind, jobId, onPrimary }: {
           {!isExpired && (
             <div
               onClick={onPrimary}
-              style={{ padding: '11px 18px', borderRadius: 999, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '13.5px', color: '#b2b6ca' }}
+              style={{ padding: '11px 18px', borderRadius: 999, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '13.5px', color: 'var(--color-fg-soft)' }}
             >
               Back to start
             </div>

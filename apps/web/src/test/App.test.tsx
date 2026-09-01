@@ -35,5 +35,6 @@ describe('App', () => {
 
     await waitFor(() => expect(screen.getByTestId('chronicle-text')).toHaveTextContent('Here follows the chronicle...'))
     expect(screen.getByTestId('tts-player')).toHaveAttribute('src', '/api/v1/pipeline/audio/tts-1.mp3')
+    expect(document.querySelector('[data-flavour="medieval"]')).not.toBeNull()
   })
 })

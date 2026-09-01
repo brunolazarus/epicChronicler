@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import { StepBoundary } from "./views/StepBoundary.js";
 import { LandingView } from "./views/LandingView.js";
 import { ReviewStep } from "./views/ReviewStep.js";
@@ -34,8 +35,9 @@ function Flow() {
   } = useChroniclePresenter();
   const theme = getFlavourTheme(selectedFlavour ?? "medieval");
 
+  let screen: ReactNode;
   if (stage === "landing") {
-    return (
+    screen = (
       <LandingView
         flavours={flavours}
         selectedFlavour={selectedFlavour}
@@ -49,21 +51,18 @@ function Flow() {
         uploadError={uploadError}
       />
     );
-  }
-  if (stage === "review") {
-    return (
+  } else if (stage === "review") {
+    screen = (
       <ReviewStep
         transcript={transcript}
         setTranscript={setTranscript}
         confirmTranscript={confirmTranscript}
       />
     );
-  }
-  if (stage === "processing") {
-    return (
+  } else if (stage === "processing") {
+    screen = (
       <ProcessingView
         stages={stages}
-        accent={theme.accent}
         transcriptionMs={transcriptionMs}
         flavourKey={theme.key}
         voice={theme.voice}
@@ -71,25 +70,35 @@ function Flow() {
         onRetry={retryGenerate}
       />
     );
+  } else {
+    screen = (
+      <ChronicleView
+        chronicleText={chronicleText}
+        audioKey={audioKey}
+        transcript={transcript}
+        flavours={flavours}
+        selectedFlavour={selectedFlavour}
+        retellAs={retellAs}
+        jobOutcome={jobOutcome}
+        restart={restart}
+      />
+    );
   }
+
   return (
-    <ChronicleView
-      chronicleText={chronicleText}
-      audioKey={audioKey}
-      transcript={transcript}
-      flavours={flavours}
-      selectedFlavour={selectedFlavour}
-      retellAs={retellAs}
-      jobOutcome={jobOutcome}
-      restart={restart}
-    />
+    <div
+      data-flavour={selectedFlavour ?? "medieval"}
+      className="min-h-screen bg-surface text-fg"
+    >
+      {screen}
+    </div>
   );
 }
 
 export default function App() {
   return (
     <StepBoundary
-      fallback={<div style={{ padding: 48, color: "#9397ab" }}>Loading…</div>}
+      fallback={<div className="p-12 text-fg-muted">Loading…</div>}
     >
       <Flow />
     </StepBoundary>

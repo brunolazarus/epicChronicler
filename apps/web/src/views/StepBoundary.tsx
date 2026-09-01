@@ -2,7 +2,7 @@ import { Suspense, type ReactNode } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 function ErrorFallback({ error }: { error: Error }) {
-  return <div style={{ color: '#e9e9ed', fontFamily: 'Inter, sans-serif' }}>✗ {error.message}</div>
+  return <div className="text-fg font-sans">✗ {error.message}</div>
 }
 
 export function StepBoundary({

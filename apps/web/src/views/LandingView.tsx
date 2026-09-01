@@ -137,7 +137,7 @@ export function LandingView({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 9, height: 9, borderRadius: 2, background: theme.accent, boxShadow: `0 0 12px ${theme.accent}` }} />
+          <div style={{ width: 9, height: 9, borderRadius: 2, background: 'var(--accent)', boxShadow: '0 0 12px var(--accent)' }} />
           <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 13, letterSpacing: '.13em', textTransform: 'uppercase', color: '#e9e9ed' }}>
             Chronicler
           </span>
@@ -194,7 +194,7 @@ export function LandingView({
           }}
         >
           <div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: theme.accent, marginBottom: 16 }}>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 16 }}>
               No login · nothing kept
             </div>
             <h1
@@ -223,7 +223,6 @@ export function LandingView({
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             {micError ? (
               <RecordRing
-                accent={theme.accent}
                 micError
                 isRecording={isRecording}
                 onStart={startRecording}
@@ -243,7 +242,6 @@ export function LandingView({
               />
             ) : (
               <RecordRing
-                accent={theme.accent}
                 micError={false}
                 isRecording={isRecording}
                 onStart={startRecording}
