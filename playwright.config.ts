@@ -36,7 +36,7 @@ export default defineConfig({
           },
         ]),
     {
-      command: 'dotenv -e .env -- pnpm --filter api dev',
+      command: 'pnpm --filter web build && dotenv -e .env -- pnpm --filter api dev',
       url: 'http://localhost:3000',
       reuseExistingServer: true,
       timeout: 30_000,

@@ -264,4 +264,4 @@ Full reasoning behind every architectural choice is in [`docs/SDD.md`](docs/SDD.
 
 ## Build log
 
-Development is documented as a public series: [`docs/devlog/DEVLOG.md`](docs/devlog/DEVLOG.md)
+Development is documented as a public series: [`docs/ROADMAP.md`](docs/ROADMAP.md)

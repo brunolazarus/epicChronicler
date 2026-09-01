@@ -1,0 +1,48 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  background: #101120;
+}
+
+body {
+  margin: 0;
+  background: #161826;
+  color: #e9e9ed;
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100%;
+}
+
+a {
+  color: #b5abfc;
+}
+
+a:hover {
+  color: #d2cefd;
+}
+
+@keyframes recpulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes ringout {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}

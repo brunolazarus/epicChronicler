@@ -5,13 +5,51 @@
 
 ---
 
+## Addendum — visual/UX direction adopted (2026-08-27)
+
+**Supersedes the "same UX behavior" line below.** A high-fidelity visual/UX design was produced via
+Claude Design and handed off at `docs/standards/design_handoff_epic_chronicler/` (Landing / Processing
+/ Chronicle views, the "Nocturne" dark design system, a per-flavour CSS scene behind the hero). This
+rebuild now targets that design directly, in the same pass as the architecture port, rather than
+porting today's plain styling first and restyling later. Reconciliation decisions made against this
+app's actual scope and API contract:
+
+- **Flow reorder** — the design picks the narrator flavour on the Landing carousel, before recording,
+  where today's app picks it at Step 3 after the transcript exists. Trivial for the MVP-layering
+  architecture: `useChroniclePresenter` already holds `selectedFlavour` as state independent of step
+  order, so this is a UI reorder, not a structural change.
+- **Retell ("Tell it again as X") pills** — the design's Chronicle view lets a user re-narrate the
+  existing transcript in a new flavour. SDD §2 lists this under Out of Scope (written for the
+  groups-era model, reasoned as "requires opening regeneration to all members"). Rather than reopen
+  that SDD line or build real regeneration, the pills stay visually but redirect to Landing (start
+  over) instead of calling `/generate` again — no new backend surface, SDD's out-of-scope call stays
+  intact for now.
+- **Error & edge states** — see `docs/standards/design_handoff_epic_chronicler/README.md`'s "Error &
+  edge states" section for the five designed states and two implementation simplifications (client-side
+  format validation; whole-job retry instead of true per-stage resumability). This replaces the
+  "Error and loading handling" section below.
+- **Transcript-review gate, missing from the handoff** — the handoff flows straight from recording into
+  an automatic transcribe→rewrite→narrate pipeline (Processing view), with no screen to review/correct
+  the transcript before the paid LLM call fires. Today's app has that gate deliberately (edit the
+  transcript, then manually click "Tell the story"). Decision: **keep the gate**. A brief review step is
+  inserted between Landing (recording/upload complete) and Processing — reuses a plain editable
+  textarea (no new visual design needed for this one interstitial moment) with a "Tell the story"
+  button that starts the Processing pipeline. Not in the handoff; added because removing cost control
+  in front of a paid API call is a product regression, not a simplification.
+- **Source-of-truth rule for this and future handoffs**: this spec and the SDD are authoritative: where
+  a Claude Design handoff implies scope neither has agreed to, simplify or flag it rather than
+  expanding scope to match the visual design.
+
+---
+
 ## Scope
 
-**In scope:** rebuild today's existing flow (record/upload → transcript → flavour selection → chronicle result), same functionality, same four API endpoints, same UX behavior, on the new stack. Includes the sample-chronicle example card, the Portuguese-input messaging line, and the MCP developer callout footer, all carried over unchanged in content.
+**In scope:** rebuild today's existing flow (record/upload → transcript → flavour selection → chronicle result), same functionality, same four API endpoints, on the new stack, **with the visual/UX direction from the Claude Design handoff** (see addendum above) rather than today's plain styling. Includes the sample-chronicle example card, the Portuguese-input messaging line, and the MCP developer callout footer, carried over in substance (exact placement/styling now follows the handoff).
 
 **Explicitly out of scope for this pass:**
 - Saving/revisiting past chronicles (agreed MVP-scope item, but deferred to a follow-up so the architecture migration ships on its own, not bundled with a new persistence decision)
 - Any auth/accounts work (backlog per SDD §2)
+- True chronicle regeneration ("retell" pills redirect to Landing instead — see addendum)
 - `packages/core` and `packages/ui` as shared packages — per the standard's "promotion, not preemption" principle, there is currently only one frontend app (`apps/web`); shared packages get created when a second app (e.g. a future mobile app) actually needs to share Model hooks or UI primitives, not before. Model/Presenter/View layers live local to `apps/web` for now.
 - Any change to `apps/api`'s pipeline logic, routes, or `apps/mcp`. This is a frontend-only rebuild; the backend contract stays exactly as it is today.
 
@@ -69,10 +107,16 @@ View (e.g. RecordStep)
 
 ## Error and loading handling
 
+Superseded by the designed states in `docs/standards/design_handoff_epic_chronicler/epic-chronicler-error-states.html`
+(mic denied, invalid upload, failed pipeline stage, expired job, generic failure) — see that bundle's
+README section for the full spec and the two simplifications reconciled against this app's real API.
+
 - `useFlavours` (fetch-on-mount, no polling) uses `useSuspenseQuery` directly.
 - `useUploadAudio`/`useJobPoll` and `useGenerateChronicle`'s job-polling are modeled as a query with `refetchInterval`, polling until the job reaches `completed`/`failed`, so the hook only resolves once there's a real result. No manual `isLoading` branching in components.
-- One `ErrorBoundary` **per step card**, not a single global boundary, matching today's behavior where the upload card and the generate card can independently show an error state without affecting each other.
-- Fallback content renders the raw API error message directly (e.g. `err.message`), matching today's existing behavior exactly. This is the standard's named early-stage trade-off (§5 of the standard doc), formalized here rather than newly introduced.
+- One `ErrorBoundary` **per step card**, not a single global boundary, matching the designed states where mic/upload errors (Landing), pipeline-stage failures (Processing) and expired/generic failures (Processing or Chronicle) each render independently.
+- Mic-denied and invalid-upload states render inline in place of the record ring / upload path, driven by browser permission state and client-side file validation respectively — no new API surface.
+- Pipeline-stage failure state is derived from `job.progress` (10/60/85/100 marks transcribe/rewrite/narrate boundaries) plus `job.failedReason` for the raw detail line — no invented error codes, no per-stage retry (see addendum: retry re-runs the whole `/generate` call).
+- Expired-job state is the existing `404` from `GET /jobs/:id`; generic-failure state is `status: "failed"` — both already distinct today, no backend change.
 
 ---
 

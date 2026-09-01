@@ -1,0 +1,23 @@
+name: API contract drift
+
+on:
+  pull_request:
+    paths:
+      - "apps/api/src/**"
+      - "packages/api-client/src/**"
+
+jobs:
+  check-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @chronicler/core build
+      - run: pnpm --filter api dev &
+      - run: npx wait-on http://localhost:3000/openapi.json
+      - run: pnpm --filter @chronicler/api-client check-drift

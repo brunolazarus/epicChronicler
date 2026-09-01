@@ -1,7 +1,5 @@
 import "@chronicler/core"; // validate env before anything else
-import { readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
@@ -11,9 +9,6 @@ import { env } from "@chronicler/core";
 import routes from "./routes/index.js";
 import { createTranscriptionWorker } from "./workers/transcription.js";
 import { createChronicleWorker } from "./workers/chronicle.js";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const landingPage = readFileSync(join(__dirname, "static/index.html"), "utf-8");
 
 const app = new OpenAPIHono();
 
@@ -33,7 +28,8 @@ app.doc("/openapi.json", {
 
 app.get("/doc", apiReference({ spec: { url: "/openapi.json" } }));
 
-app.get("/", (c) => c.html(landingPage));
+app.use("/assets/*", serveStatic({ root: "../web/dist" }));
+app.get("/", serveStatic({ path: "../web/dist/index.html" }));
 
 app.notFound((c) => c.json({ error: "Not found" }, 404));
 
