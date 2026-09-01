@@ -1,18 +1,21 @@
-function ClockIcon({ color }: { color: string }) {
+import { Button } from '@/components/ui/button.js'
+
+function ClockIcon({ className }: { className?: string }) {
   return (
-    <svg width={34} height={34} viewBox="0 0 256 256" fill="none" stroke={color} strokeWidth={16} strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', flex: 'none' }}>
+    <svg width={34} height={34} viewBox="0 0 256 256" fill="none" stroke="currentColor"
+      strokeWidth={16} strokeLinecap="round" strokeLinejoin="round" className={className}>
       <circle cx={128} cy={128} r={96} />
       <path d="M128,72v56h48" />
     </svg>
   )
 }
-
-function WarningIcon({ color }: { color: string }) {
+function WarningIcon({ className }: { className?: string }) {
   return (
-    <svg width={34} height={34} viewBox="0 0 256 256" fill="none" stroke={color} strokeWidth={16} strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', flex: 'none' }}>
+    <svg width={34} height={34} viewBox="0 0 256 256" fill="none" stroke="currentColor"
+      strokeWidth={16} strokeLinecap="round" strokeLinejoin="round" className={className}>
       <circle cx={128} cy={128} r={96} />
       <line x1={128} y1={76} x2={128} y2={140} />
-      <circle cx={128} cy={176} r={8} fill={color} stroke="none" />
+      <circle cx={128} cy={176} r={8} fill="currentColor" stroke="none" />
     </svg>
   )
 }
@@ -23,62 +26,47 @@ export function EmptyStateShell({ kind, jobId, onPrimary }: {
   onPrimary: () => void
 }) {
   const isExpired = kind === 'expired'
-
-  const ring = isExpired ? 'var(--color-line-muted)' : 'var(--error-line)'
-  const glow = isExpired ? 'rgba(233,233,237,.06)' : 'var(--error-soft)'
-  const markColor = isExpired ? 'var(--color-fg-muted)' : 'var(--error)'
   const title = isExpired ? 'This session has ended' : 'Something went wrong'
   const body = isExpired
     ? 'Chronicler keeps nothing after you leave, so this chronicle is gone. Nothing was stored, and nothing was shared.'
     : "We couldn't finish telling your story. This one is on us — trying again usually works."
   const detail = isExpired ? `job ${jobId} · expired` : `job ${jobId} · error`
   const ctaLabel = isExpired ? 'Start a new chronicle' : 'Try again'
-  const ctaLine = isExpired ? 'var(--color-fg-soft)' : 'var(--error)'
-  const ctaText = isExpired ? 'var(--color-fg)' : 'var(--error-text)'
-  const ctaFill = isExpired ? 'transparent' : 'var(--error-ghost)'
-  const metaColor = isExpired ? 'var(--color-fg-muted)' : 'var(--error-text)'
-  const metaText = detail
+  const markColor = isExpired ? 'text-fg-muted' : 'text-error'
 
   return (
-    <div style={{ maxWidth: 560, border: '1px solid var(--color-line)', borderRadius: 14, background: 'var(--color-surface)', boxShadow: '0 16px 40px rgba(0,0,0,.45)', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', gap: 24, padding: '0 24px', borderBottom: '1px solid var(--color-line)', background: 'var(--color-panel-raised)', fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px' }}>
-        <div style={{ padding: '14px 0', color: 'var(--color-fg-faint)' }}>transcript + chronicle</div>
-        <div style={{ padding: '14px 0', color: 'var(--color-fg-faint)' }}>audio</div>
-        <div style={{ padding: '14px 0', color: 'var(--color-fg-faint)' }}>share</div>
-        <div style={{ marginLeft: 'auto', padding: '14px 0', color: metaColor }}>{metaText}</div>
+    <div className="mx-auto my-16 w-full max-w-[560px] overflow-hidden rounded-card border border-line bg-surface shadow-[0_16px_40px_rgba(0,0,0,.45)]">
+      <div className="flex gap-6 border-b border-line bg-panel-raised px-6 font-mono text-[11.5px]">
+        <div className="py-3.5 text-fg-faint">transcript + chronicle</div>
+        <div className="py-3.5 text-fg-faint">audio</div>
+        <div className="py-3.5 text-fg-faint">share</div>
+        <div className={`ml-auto py-3.5 ${isExpired ? 'text-fg-muted' : 'text-error-fg'}`}>{detail}</div>
       </div>
-      <div style={{ padding: '54px 40px 48px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        <div style={{ position: 'relative', width: 88, height: 88, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 26 }}>
-          <div style={{ position: 'absolute', inset: -14, borderRadius: '50%', background: `radial-gradient(circle, ${glow} 0%, transparent 62%)` }} />
-          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: `1px dashed ${ring}` }} />
-          <div style={{ position: 'absolute', inset: 20, borderRadius: '50%', background: 'rgba(10,11,16,.5)' }} />
-          <div style={{ position: 'relative', display: 'flex', color: markColor }}>
-            {isExpired ? <ClockIcon color={markColor} /> : <WarningIcon color={markColor} />}
+      <div className="flex flex-col items-center px-6 py-12 text-center md:px-10">
+        <div className="relative mb-[26px] flex h-[88px] w-[88px] items-center justify-center">
+          <div
+            className="absolute -inset-3.5 rounded-full"
+            style={{ background: `radial-gradient(circle, ${isExpired ? 'rgba(233,233,237,.06)' : 'var(--error-soft)'} 0%, transparent 62%)` }}
+          />
+          <div className={`absolute inset-0 rounded-full border border-dashed ${isExpired ? 'border-line-muted' : 'border-error-line'}`} />
+          <div className="absolute inset-5 rounded-full bg-abyss/50" />
+          <div className={`relative flex ${markColor}`}>
+            {isExpired ? <ClockIcon /> : <WarningIcon />}
           </div>
         </div>
-        <h2 style={{ margin: '0 0 12px', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 24, lineHeight: 1.2, letterSpacing: '-.02em', color: 'var(--color-fg)' }}>
-          {title}
-        </h2>
-        <p style={{ margin: '0 0 8px', fontFamily: 'Inter, sans-serif', fontSize: 14, lineHeight: 1.7, color: 'var(--color-fg-soft)', maxWidth: 400 }}>
-          {body}
-        </p>
-        <p style={{ margin: '0 0 26px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', lineHeight: 1.6, color: 'var(--color-fg-muted)' }}>
-          {detail}
-        </p>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <div
+        <h2 className="mb-3 text-2xl font-medium leading-tight tracking-[-.02em] text-fg">{title}</h2>
+        <p className="mb-2 max-w-[400px] text-sm leading-[1.7] text-fg-soft">{body}</p>
+        <p className="mb-[26px] font-mono text-[11.5px] leading-[1.6] text-fg-muted">{detail}</p>
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
+          <Button
+            variant={isExpired ? 'outline' : 'default'}
             onClick={onPrimary}
-            style={{ padding: '11px 22px', border: `1px solid ${ctaLine}`, borderRadius: 999, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '13.5px', color: ctaText, background: ctaFill }}
+            className={isExpired ? 'border-fg-soft' : 'border-error bg-error-ghost text-error-fg'}
           >
             {ctaLabel}
-          </div>
+          </Button>
           {!isExpired && (
-            <div
-              onClick={onPrimary}
-              style={{ padding: '11px 18px', borderRadius: 999, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '13.5px', color: 'var(--color-fg-soft)' }}
-            >
-              Back to start
-            </div>
+            <Button variant="ghost" onClick={onPrimary}>Back to start</Button>
           )}
         </div>
       </div>
