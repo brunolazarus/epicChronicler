@@ -15,4 +15,13 @@ describe('NarratorCarousel', () => {
     await userEvent.click(screen.getByTestId('carousel-chip-sports'))
     expect(selectFlavour).toHaveBeenCalledWith('sports')
   })
+
+  it('wraps to the neighbouring narrator with the arrows', async () => {
+    const selectFlavour = vi.fn()
+    render(<NarratorCarousel flavours={flavours} selectedFlavour="medieval" selectFlavour={selectFlavour} />)
+    await userEvent.click(screen.getByLabelText('Previous narrator'))
+    expect(selectFlavour).toHaveBeenCalledWith('sports')
+    await userEvent.click(screen.getByLabelText('Next narrator'))
+    expect(selectFlavour).toHaveBeenCalledWith('sports')
+  })
 })

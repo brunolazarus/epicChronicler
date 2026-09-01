@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+import { Button } from '@/components/ui/button.js'
 import { getFlavourTheme } from '../theme.js'
 
 interface FlavourSummary {
@@ -16,43 +18,45 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
   const prev = () => selectFlavour(flavours[(activeIndex - 1 + flavours.length) % flavours.length].key)
   const next = () => selectFlavour(flavours[(activeIndex + 1) % flavours.length].key)
 
+  const downX = useRef<number | null>(null)
+  const onPointerDown = (e: React.PointerEvent) => { downX.current = e.clientX }
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (downX.current === null) return
+    const dx = e.clientX - downX.current
+    downX.current = null
+    if (dx > 40) prev()
+    else if (dx < -40) next()
+  }
+
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', padding: '34px 0 44px' }}>
+    <div className="relative overflow-hidden pt-[34px] pb-11">
       <div
         data-flavour={selectedFlavour ?? 'medieval'}
-        style={{
-          position: 'absolute', left: '50%', bottom: -240, width: 1000, height: 500,
-          transform: 'translateX(-50%)', borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, var(--accent-soft) 0%, transparent 66%)',
-          transition: 'background .5s ease', pointerEvents: 'none',
-        }}
+        className="pointer-events-none absolute -bottom-60 left-1/2 h-[500px] w-[min(1000px,140vw)] -translate-x-1/2 rounded-full transition-[background] duration-500"
+        style={{ background: 'radial-gradient(ellipse at center, var(--accent-soft) 0%, transparent 66%)' }}
       />
-      <div style={{ position: 'relative', padding: '0 48px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--color-fg-faint)' }}>
-            Narrator
-          </div>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--color-fg-soft)' }}>{current?.name ?? ''}</div>
+      <div className="relative px-6 md:px-12">
+        <div className="mb-4 flex items-baseline justify-between">
+          <div className="font-mono text-[11px] uppercase tracking-[.14em] text-fg-faint">Narrator</div>
+          <div className="text-xs text-fg-soft">{current?.name ?? ''}</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" aria-label="Previous narrator" onClick={prev} className="shrink-0 border-line-muted text-fg-soft">‹</Button>
+
           <div
-            role="button"
-            aria-label="Previous narrator"
-            onClick={prev}
-            style={{ flex: 'none', width: 36, height: 36, borderRadius: '50%', border: '1px solid var(--color-line-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-fg-soft)', fontSize: 16, cursor: 'pointer' }}
+            className="flex-1 overflow-hidden py-2.5"
+            onPointerDown={onPointerDown}
+            onPointerUp={onPointerUp}
           >
-            ‹
-          </div>
-          <div style={{ flex: 1, overflow: 'hidden', padding: '10px 0' }}>
             <div
+              className="flex gap-[18px] [--card-step:194px] md:[--card-step:276px] motion-reduce:transition-none"
               style={{
-                display: 'flex', gap: 18,
-                transform: `translateX(${200 - activeIndex * 276}px)`,
+                transform: `translateX(calc(50% - (${activeIndex} + 0.5) * var(--card-step)))`,
                 transition: 'transform .45s cubic-bezier(.22,.8,.26,1)',
               }}
             >
               {flavours.map((f) => {
-                const theme = getFlavourTheme(f.key)
                 const selected = f.key === selectedFlavour
                 return (
                   <div
@@ -60,58 +64,36 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
                     data-testid={`carousel-chip-${f.key}`}
                     data-flavour={f.key}
                     role="button"
+                    tabIndex={0}
                     onClick={() => selectFlavour(f.key)}
-                    style={{
-                      flex: 'none', width: 258, padding: 20, borderRadius: 12, cursor: 'pointer',
-                      opacity: selected ? 1 : 0.5,
-                      transform: selected ? 'scale(1)' : 'scale(.9)',
-                      border: selected ? '1px solid var(--accent)' : '1px solid var(--color-line-muted)',
-                      backgroundColor: selected ? 'var(--accent-ghost)' : 'transparent',
-                      boxShadow: selected ? '0 0 44px var(--accent-soft)' : 'none',
-                      transition: 'all .45s cubic-bezier(.22,.8,.26,1)',
-                    }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectFlavour(f.key) } }}
+                    className={[
+                      'w-44 md:w-[258px] shrink-0 cursor-pointer rounded-xl p-5',
+                      'transition-all duration-[450ms] ease-[cubic-bezier(.22,.8,.26,1)] motion-reduce:transition-none',
+                      selected
+                        ? 'scale-100 opacity-100 border border-accent bg-accent-ghost shadow-[0_0_44px_var(--accent-soft)]'
+                        : 'scale-90 opacity-50 border border-line-muted bg-transparent',
+                    ].join(' ')}
                   >
-                    <div
-                      style={{
-                        height: 96, marginBottom: 16, borderRadius: 8, border: '1px dashed var(--color-line-muted)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        backgroundImage: 'repeating-linear-gradient(45deg, rgba(233,233,237,.05) 0 5px, transparent 5px 10px)',
-                      }}
-                    >
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, letterSpacing: '.06em', color: 'var(--color-fg-muted)' }}>
-                        {theme.art}
-                      </span>
+                    <div className="mb-4 flex h-24 items-center justify-center rounded-lg border border-dashed border-line-muted [background-image:repeating-linear-gradient(45deg,rgba(233,233,237,.05)_0_5px,transparent_5px_10px)]">
+                      <span className="font-mono text-[9px] tracking-[.06em] text-fg-muted">{getFlavourTheme(f.key).art}</span>
                     </div>
-                    <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 16, lineHeight: 1.2, color: selected ? 'var(--color-fg)' : 'var(--color-fg-muted)', marginBottom: 7 }}>
-                      {f.name}
-                    </div>
-                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, lineHeight: 1.45, color: 'var(--color-fg-muted)', minHeight: 35 }}>
-                      {f.description}
-                    </div>
+                    <div className={`mb-[7px] text-base font-medium leading-tight ${selected ? 'text-fg' : 'text-fg-muted'}`}>{f.name}</div>
+                    <div className="min-h-[35px] text-xs leading-[1.45] text-fg-muted">{f.description}</div>
                   </div>
                 )
               })}
             </div>
           </div>
-          <div
-            role="button"
-            aria-label="Next narrator"
-            onClick={next}
-            style={{ flex: 'none', width: 36, height: 36, borderRadius: '50%', border: '1px solid var(--color-line-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-fg-soft)', fontSize: 16, cursor: 'pointer' }}
-          >
-            ›
-          </div>
+
+          <Button variant="outline" size="icon" aria-label="Next narrator" onClick={next} className="shrink-0 border-line-muted text-fg-soft">›</Button>
         </div>
-        <div data-flavour={selectedFlavour ?? 'medieval'} style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 20 }}>
+
+        <div data-flavour={selectedFlavour ?? 'medieval'} className="mt-5 flex justify-center gap-1.5">
           {flavours.map((f, i) => (
             <div
               key={f.key}
-              style={{
-                height: 6, borderRadius: 3,
-                width: i === activeIndex ? 22 : 6,
-                background: i === activeIndex ? 'var(--accent)' : 'var(--color-line-muted)',
-                transition: 'all .35s ease',
-              }}
+              className={`h-1.5 rounded-full transition-all duration-[350ms] motion-reduce:transition-none ${i === activeIndex ? 'w-[22px] bg-accent' : 'w-1.5 bg-line-muted'}`}
             />
           ))}
         </div>
