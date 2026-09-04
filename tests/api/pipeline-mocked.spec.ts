@@ -17,10 +17,13 @@ test('generate chronicle end-to-end through mocked LLM + TTS', async ({ request 
   for (let i = 0; i < 20; i++) {
     const pollRes = await request.get(`/api/v1/pipeline/jobs/${jobId}`)
     const body = await pollRes.json()
+    expect(body.queue).toBe('chronicle')
     if (body.status === 'completed') {
       result = body.result
       break
     }
+    // `result` is present only once completed — the web presenter relies on this.
+    expect(body.result).toBeUndefined()
     if (body.status === 'failed') throw new Error(`job failed: ${body.error}`)
     await new Promise((r) => setTimeout(r, 250))
   }

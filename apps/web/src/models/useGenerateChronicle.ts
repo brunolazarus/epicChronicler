@@ -12,8 +12,8 @@ export function useGenerateChronicle() {
       const { data, error } = await client.POST('/api/v1/pipeline/generate', {
         body: { ...input, flavour: input.flavour as 'medieval' | 'sports' | 'nature' | 'fantasy' },
       })
-      if (error) throw new Error('Failed to generate chronicle')
-      return { jobId: (data as { jobId: string }).jobId }
+      if (error || !data) throw new Error('Failed to generate chronicle')
+      return data
     },
   })
 }

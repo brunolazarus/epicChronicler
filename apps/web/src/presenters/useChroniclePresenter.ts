@@ -30,6 +30,12 @@ export function useChroniclePresenter() {
   const [generateJobId, setGenerateJobId] = useState<string | null>(null)
   const generatePoll = useJobPoll(generateJobId)
 
+  // `result` is a union of both job kinds; narrow by which poll produced it.
+  const transcriptionResult =
+    uploadPoll.data?.result && 'transcript' in uploadPoll.data.result ? uploadPoll.data.result : undefined
+  const chronicleResult =
+    generatePoll.data?.result && 'text' in generatePoll.data.result ? generatePoll.data.result : undefined
+
   const uploadStatus = useMemo(() => {
     if (uploadMutation.isError || uploadPoll.data?.status === 'failed') return 'error' as const
     if (!uploadJobId) return uploadMutation.isPending ? ('uploading' as const) : ('idle' as const)
@@ -38,12 +44,8 @@ export function useChroniclePresenter() {
   }, [uploadMutation.isError, uploadMutation.isPending, uploadJobId, uploadPoll.data])
 
   const [seededJobId, setSeededJobId] = useState<string | null>(null)
-  if (
-    uploadPoll.data?.status === 'completed' &&
-    uploadJobId !== seededJobId &&
-    typeof (uploadPoll.data.result as { transcript?: string })?.transcript === 'string'
-  ) {
-    setTranscript((uploadPoll.data.result as { transcript: string }).transcript)
+  if (transcriptionResult && uploadJobId !== seededJobId) {
+    setTranscript(transcriptionResult.transcript)
     setSeededJobId(uploadJobId)
     setStage('review')
   }
@@ -71,7 +73,7 @@ export function useChroniclePresenter() {
     confirmTranscript()
   }
 
-  const transcriptionMs = (uploadPoll.data?.result as { transcriptionMs?: number } | undefined)?.transcriptionMs ?? null
+  const transcriptionMs = transcriptionResult?.transcriptionMs ?? null
   const generateProgress = generatePoll.data?.progress ?? 0
   const generateFailed = generatePoll.data?.status === 'failed' || generateMutation.isError
   const rewriteDone = generateProgress >= 60 || generatePoll.data?.status === 'completed'
@@ -121,8 +123,6 @@ export function useChroniclePresenter() {
     setSelectedFlavour(key)
   }
 
-  const generateResult = generatePoll.data?.result as { text?: string; audioKey?: string } | undefined
-
   return {
     flavours,
     selectedFlavour,
@@ -142,8 +142,8 @@ export function useChroniclePresenter() {
     stages,
     retryGenerate,
     transcriptionMs,
-    chronicleText: generateResult?.text ?? null,
-    audioKey: generateResult?.audioKey ?? null,
+    chronicleText: chronicleResult?.text ?? null,
+    audioKey: chronicleResult?.audioKey ?? null,
     generateError: generatePoll.data?.error ?? generateMutation.error?.message ?? null,
     jobOutcome,
     restart,

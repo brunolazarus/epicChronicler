@@ -109,7 +109,7 @@ export interface paths {
                             queue: "transcription" | "chronicle";
                             status: string;
                             progress: number;
-                            result?: unknown;
+                            result?: components["schemas"]["TranscriptionJobResult"] | components["schemas"]["ChronicleJobResult"];
                             error: string | null;
                         };
                     };
@@ -298,7 +298,22 @@ export interface paths {
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: never;
+    schemas: {
+        TranscriptionJobResult: {
+            transcript: string;
+            transcriptionMs: number;
+        };
+        ChronicleJobResult: {
+            text: string;
+            audioKey: string;
+            llmMs: number;
+            ttsMs: number;
+            totalMs: number;
+            inputTokens: number;
+            outputTokens: number;
+            cacheReadTokens: number;
+        };
+    };
     responses: never;
     parameters: never;
     requestBodies: never;

@@ -10,8 +10,8 @@ export function useUploadAudio() {
         body: { audio: file } as never,
         bodySerializer: () => form,
       })
-      if (error) throw new Error('Failed to upload audio')
-      return { jobId: (data as { jobId: string }).jobId }
+      if (error || !data) throw new Error('Failed to upload audio')
+      return data
     },
   })
 }

@@ -1,7 +1,16 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { randomUUID } from 'crypto'
 import type { Job } from 'bullmq'
-import { uploadToR2, downloadFromR2, FLAVOURS, FLAVOUR_KEYS, QueueName, JobName } from '@chronicler/core'
+import {
+  uploadToR2,
+  downloadFromR2,
+  FLAVOURS,
+  FLAVOUR_KEYS,
+  QueueName,
+  JobName,
+  TranscriptionJobResultSchema,
+  ChronicleJobResultSchema,
+} from '@chronicler/core'
 import type { TranscriptionJobData, TranscriptionJobResult, ChronicleJobData, ChronicleJobResult } from '@chronicler/core'
 import { transcriptionQueue, chronicleQueue } from '../queues/index.js'
 import { rateLimit } from '../middleware/rate-limit.js'
@@ -22,12 +31,18 @@ const JobQueuedSchema = z.object({
   status: z.literal('queued'),
 })
 
+// Present only once the job has completed; absent while queued/active/failed.
+const JobResultSchema = z.union([
+  TranscriptionJobResultSchema.openapi('TranscriptionJobResult'),
+  ChronicleJobResultSchema.openapi('ChronicleJobResult'),
+])
+
 const JobStatusSchema = z.object({
   id: z.string().nullable(),
   queue: z.enum(['transcription', 'chronicle']),
   status: z.string(),
   progress: z.number(),
-  result: z.any(),
+  result: JobResultSchema.optional(),
   error: z.string().nullable(),
 })
 
@@ -127,7 +142,7 @@ pipeline.openapi(
       queue,
       status: state,
       progress: job.progress as number,
-      result: state === 'completed' ? job.returnvalue : null,
+      result: state === 'completed' ? job.returnvalue : undefined,
       error: state === 'failed' ? (job.failedReason ?? null) : null,
     }, 200)
   },

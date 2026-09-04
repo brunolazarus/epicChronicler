@@ -1,27 +1,22 @@
 import { useQuery } from '@tanstack/react-query'
-import { client } from '@chronicler/api-client'
+import { client, type JobStatus } from '@chronicler/api-client'
 
-export interface JobStatus {
-  status: string
-  progress: number
-  result: unknown
-  error: string | null
-}
+export type { JobStatus }
 
 export class JobExpiredError extends Error {}
 
 export function useJobPoll(jobId: string | null) {
-  return useQuery({
+  return useQuery<JobStatus, Error>({
     queryKey: ['job', jobId],
     queryFn: async () => {
       const { data, error, response } = await client.GET('/api/v1/pipeline/jobs/{id}', {
         params: { path: { id: jobId! } },
       })
-      if (error) {
+      if (error || !data) {
         if (response.status === 404) throw new JobExpiredError('Job not found')
         throw new Error('Failed to poll job')
       }
-      return data as JobStatus
+      return data
     },
     enabled: jobId !== null,
     retry: false,

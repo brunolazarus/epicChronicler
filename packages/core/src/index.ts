@@ -7,6 +7,7 @@ export { getRedis } from './redis.js'
 export { QueueName, JobName, QueuePrefix } from './queue-names.js'
 export type { QueueName as QueueNameType, JobName as JobNameType } from './queue-names.js'
 
+export { TranscriptionJobResultSchema, ChronicleJobResultSchema } from './queue-types.js'
 export type {
   TranscriptionJobData,
   TranscriptionJobResult,

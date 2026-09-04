@@ -28,7 +28,7 @@ describe('useUploadAudio', () => {
 
     result.current.mutate(file)
 
-    await waitFor(() => expect(result.current.data).toEqual({ jobId: 'job-1' }))
+    await waitFor(() => expect(result.current.data).toEqual({ jobId: 'job-1', status: 'queued' }))
     expect(client.POST).toHaveBeenCalledWith('/api/v1/pipeline/upload', {
       body: { audio: file },
       bodySerializer: expect.any(Function),

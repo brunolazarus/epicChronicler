@@ -30,7 +30,7 @@ describe('useGenerateChronicle', () => {
       flavour: 'medieval',
     })
 
-    await waitFor(() => expect(result.current.data).toEqual({ jobId: 'job-2' }))
+    await waitFor(() => expect(result.current.data).toEqual({ jobId: 'job-2', status: 'queued' }))
     expect(client.POST).toHaveBeenCalledWith('/api/v1/pipeline/generate', {
       body: {
         transcripts: [{ speaker: 'Narrator', text: 'a story' }],
