@@ -4,13 +4,11 @@ import { useUploadAudio } from '../models/useUploadAudio.js'
 import { useJobPoll, JobExpiredError } from '../models/useJobPoll.js'
 import { useGenerateChronicle } from '../models/useGenerateChronicle.js'
 import { validateAudioFile } from '../models/validateAudioFile.js'
+import type { PipelineStage } from '../views/PipelineStrip.js'
 
 const DEFAULT_FLAVOUR = 'medieval'
 
-import type { PipelineStage } from '../views/PipelineStrip.js'
-
 type Stage = 'landing' | 'review' | 'processing' | 'result'
-type PipelineStageStatus = 'done' | 'active' | 'queued' | 'failed' | 'blocked' | 'held'
 
 export function useChroniclePresenter() {
   const { data: flavours } = useFlavours()
