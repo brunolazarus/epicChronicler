@@ -49,6 +49,10 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
   useEffect(() => {
     const el = audioRef.current
     if (!el) return
+    // a src swap keeps the same element, so re-seed from it rather than showing the old track's state
+    setIsPlaying(!el.paused)
+    setCurrentTime(el.currentTime)
+    setDuration(Number.isFinite(el.duration) ? el.duration : 0)
     const onPlay = () => setIsPlaying(true)
     const onPause = () => setIsPlaying(false)
     const onTime = () => setCurrentTime(el.currentTime)
@@ -73,9 +77,10 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
 
   const theme = getFlavourTheme(selectedFlavour ?? 'medieval')
   const wordCount = countWords(chronicleText)
-  const blocks = chronicleText?.trim() ? chronicleText.trim().split(/\n+/) : ['Your chronicle will appear here…']
-  const lead = blocks[0]
-  const payoff = blocks.slice(1).join('\n\n')
+  // the accent rule is reserved for the closing line, so only the last block is the payoff
+  const blocks = chronicleText?.trim() ? chronicleText.trim().split(/\n\s*\n/) : ['Your chronicle will appear here…']
+  const payoff = blocks.length > 1 ? blocks[blocks.length - 1] : ''
+  const leadParas = blocks.length > 1 ? blocks.slice(0, -1) : blocks
   const playerIndex = payoff ? 3 : 2
   const progress = duration > 0 ? currentTime / duration : 0
 
@@ -96,12 +101,15 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
           {/* self-start, not centred: the marker must stay 10px below the card edge even if the
               strip grows taller than the slot on a narrow viewport */}
           <div className="h-[34px] w-[34px] flex-none self-start" aria-hidden />
-          <div className="flex items-center self-stretch whitespace-nowrap text-fg shadow-[inset_0_-2px_0_0_var(--accent)]">
+          {/* -mb-2.5 pb-2.5 pushes the underline past the strip's padding onto the bottom border */}
+          <div className="-mb-2.5 flex items-center self-stretch whitespace-nowrap pb-2.5 text-fg shadow-[inset_0_-2px_0_0_var(--accent)]">
             transcript + chronicle
           </div>
           <div aria-disabled className="hidden items-center self-stretch text-fg-muted sm:flex">audio</div>
           <div aria-disabled className="hidden items-center self-stretch text-fg-muted sm:flex">share</div>
-          <div className="ml-auto flex items-center self-stretch whitespace-nowrap text-fg-faint">
+          {/* min-w-0 + break-all: the API's job id is a full randomUUID(), and a flex item will not
+              shrink below min-content on its own — without these it overflows the card's clipped edge */}
+          <div className="ml-auto hidden min-w-0 items-center self-stretch break-all text-right text-fg-faint sm:flex">
             {selectedFlavour ?? 'medieval'} · job {jobId}
           </div>
         </div>
@@ -111,7 +119,7 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
             <div className="mb-[18px] font-mono text-[10.5px] uppercase tracking-[.14em] text-fg-faint">What you said</div>
             <div className="whitespace-pre-wrap font-mono text-xs leading-[1.7] text-fg-muted">{transcript}</div>
             <div className="mt-6 border-t border-line pt-[18px] font-mono text-[11px] leading-[1.7] text-fg-muted">
-              {countWords(transcript)} words
+              transcript · {countWords(transcript)} words
             </div>
           </div>
 
@@ -127,9 +135,11 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
             </div>
 
             <div data-testid="chronicle-text">
-              <p {...stagger(1)} className="stagger-block whitespace-pre-wrap text-[15px] leading-[1.8] text-fg-muted">
-                {lead}
-              </p>
+              <div {...stagger(1)} className="stagger-block flex flex-col gap-4">
+                {leadParas.map((para, i) => (
+                  <p key={i} className="whitespace-pre-wrap text-[15px] leading-[1.8] text-fg-muted">{para}</p>
+                ))}
+              </div>
               {payoff && (
                 <p {...stagger(2)} className="stagger-block mt-4 whitespace-pre-wrap border-l-2 border-accent pl-4 text-[15px] leading-[1.8] text-fg">
                   {payoff}
