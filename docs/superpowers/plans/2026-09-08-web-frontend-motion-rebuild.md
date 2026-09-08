@@ -861,55 +861,63 @@ git commit -m "feat(web): persistent shell — ring/scene-band/pipeline-strip su
 
 ---
 
-## Task 7: Apply motion timing + entrance choreography
+## Task 7: Apply motion timing — card entrance + shared keyframes
 
-Wire the `--dur-*` tokens into the card region and give the chronicle its staggered entrance. Ring travel + scene height + pipeline bars were already tokenised in Tasks 3/4/6.
+Wire the `--dur-*` tokens into the per-stage card region and add the shared motion CSS (card entrance + the stagger keyframe/utility that Task 9 will apply to the rebuilt Chronicle). Ring travel + scene height + pipeline bars were already tokenised in Tasks 3/4/6.
+
+**Scope note (controller ruling, 2026-09-08):** the ChronicleView stagger *application* (`data-stagger` on the kicker/paragraphs/player) moved to **Task 9**, which rebuilds that exact column (tab strip + custom player). Task 7 ships the shared `stagger-in` keyframe + `stagger-block` utility so Task 9 only adds a class. No `ChronicleView.tsx` change in this task.
 
 **Files:**
-- Modify: `apps/web/src/App.tsx` (card-region entrance transition)
-- Modify: `apps/web/src/views/ChronicleView.tsx` (stagger — title block/kicker 0ms, first paragraph 80ms, payoff line 160ms, player bar 240ms; each fades in + rises 10px)
-- Modify: `apps/web/src/views/NarratorCarousel.tsx` (replace hardcoded `duration-[450ms]`/`duration-[350ms]` with token references — optional consistency pass)
-- Create: `apps/web/src/views/test/ChronicleView.stagger.test.tsx`
+- Modify: `apps/web/src/App.tsx` (card-region entrance: `key` + `motion-card` class on the `<div className="relative z-10">{card}</div>` wrapper at ~line 175)
+- Modify: `apps/web/src/index.css` (`motion-card` + `card-in`; `stagger-block` + `stagger-in`; `--dur-card`/`--dur-dots` tokens + reduced-motion overrides)
+- Modify: `apps/web/src/views/NarratorCarousel.tsx` (replace hardcoded `duration-[450ms]`/`duration-[350ms]` with `duration-[var(--dur-card)]` / `duration-[var(--dur-dots)]`)
+- Create: `apps/web/src/test/motion-css.test.ts`
 
 **Interfaces:**
 - Consumes: `--dur-copy`, `--dur-stag`, `--ease`, `--stag-delay` from Task 1.
-- Produces: no API change. The card region wrapper gets `key={stage}` so React remounts it per stage (triggering the entrance), plus a CSS entrance (`@starting-style` or a mount class toggled in an effect).
+- Produces: `@utility motion-card`, `@utility stagger-block` (consumed by Task 9), `--dur-card` (450ms) / `--dur-dots` (350ms) tokens. No JS/API change. The card wrapper gets `key={p.stage}` so React remounts it per stage, triggering the `card-in` animation.
 
 - [ ] **Step 1: Write the failing test**
 
-`apps/web/src/views/test/ChronicleView.stagger.test.tsx`:
+`apps/web/src/test/motion-css.test.ts`:
 
-```tsx
+```ts
 import { describe, it, expect } from 'vitest'
-import { render } from '@testing-library/react'
-import { ChronicleView } from '../ChronicleView.js'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
-const props = {
-  chronicleText: 'First paragraph.\n\nThe payoff line.',
-  audioKey: 'tts-abc.mp3', transcript: 'said things', flavours: [{ key: 'medieval', name: 'Medieval Chronicler', description: 'x' }],
-  selectedFlavour: 'medieval', retellAs: () => {}, jobOutcome: null, restart: () => {}, jobId: '8f31',
-}
+const css = readFileSync(fileURLToPath(new URL('../index.css', import.meta.url)), 'utf8')
 
-describe('ChronicleView entrance', () => {
-  it('assigns increasing stagger delays to the chronicle blocks', () => {
-    const { container } = render(<ChronicleView {...props} />)
-    const staggered = [...container.querySelectorAll('[data-stagger]')]
-    expect(staggered.length).toBeGreaterThanOrEqual(3)
-    const idx = staggered.map((el) => Number((el as HTMLElement).dataset.stagger))
-    expect(idx).toEqual([...idx].sort((a, b) => a - b))
-    expect(idx[0]).toBe(0)
+describe('index.css entrance motion', () => {
+  it('defines the card entrance keyframe + utility on --dur-copy', () => {
+    expect(css).toMatch(/@keyframes card-in/)
+    expect(css).toMatch(/@utility motion-card[\s\S]*?animation:\s*card-in var\(--dur-copy\) var\(--ease\)/)
+  })
+
+  it('defines the stagger keyframe + utility driven by --stagger-index * --stag-delay', () => {
+    expect(css).toMatch(/@keyframes stagger-in/)
+    expect(css).toMatch(/@utility stagger-block[\s\S]*?animation:\s*stagger-in var\(--dur-stag\) var\(--ease\)/)
+    expect(css).toMatch(/animation-delay:\s*calc\(var\(--stagger-index[^)]*\)\s*\*\s*var\(--stag-delay\)\)/)
+  })
+
+  it('defines the carousel duration tokens and collapses them under reduced motion', () => {
+    expect(css).toMatch(/--dur-card:\s*450ms/)
+    expect(css).toMatch(/--dur-dots:\s*350ms/)
+    const reduced = css.slice(css.indexOf('prefers-reduced-motion'))
+    expect(reduced).toMatch(/--dur-card:\s*120ms/)
+    expect(reduced).toMatch(/--dur-dots:\s*120ms/)
   })
 })
 ```
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `pnpm --filter web test -- ChronicleView.stagger`
-Expected: FAIL — no `data-stagger` attributes.
+Run: `pnpm --filter web test -- motion-css`
+Expected: FAIL — keyframes/utilities/tokens not present.
 
 - [ ] **Step 3: Implement**
 
-`App.tsx`: wrap the card region in `<div key={stage} className="motion-card">{card}</div>`. Add to `index.css`:
+`App.tsx`: the card wrapper (currently `<div className="relative z-10">{card}</div>`, ~line 175) becomes `<div key={p.stage} className="motion-card relative z-10">{card}</div>`. Add to `index.css`:
 
 ```css
 @utility motion-card {
@@ -934,26 +942,27 @@ Also add the stagger keyframe to `index.css`:
 }
 ```
 
-In the existing `@media (prefers-reduced-motion: reduce)` block add `[data-stagger] { animation-delay: 0ms; }` (belt-and-braces — Task 1's `--stag-delay: 0ms` already collapses the calc).
+Also add, in `@layer base` where the other `--dur-*` tokens live, `--dur-card: 450ms;` and `--dur-dots: 350ms;`, and inside the existing `@media (prefers-reduced-motion: reduce)` `:root` block add `--dur-card: 120ms;` and `--dur-dots: 120ms;` plus `[data-stagger] { animation-delay: 0ms; }` (belt-and-braces — `--stag-delay: 0ms` already collapses the calc).
 
 (Forward rises. "Back falls" — for `restart`/`retellAs` returning to landing — is left as the same rise for this pass; note it as a known simplification in the commit message.)
 
-`ChronicleView.tsx`: give the narrator kicker+text container, the first paragraph, the payoff line, and the player bar each a `data-stagger` attribute holding its index (`"0"`, `"1"`, `"2"`, `"3"`), the `stagger-block` utility class, and `style={{ ['--stagger-index' as any]: n }}`. The test asserts only on the `data-stagger` index values.
+`NarratorCarousel.tsx`: replace the two `duration-[450ms]` occurrences (the track `transition-transform`, the card `transition-all`) with `duration-[var(--dur-card)]`, and the `duration-[350ms]` on the dots with `duration-[var(--dur-dots)]`. The `ease-[cubic-bezier(.22,.8,.26,1)]` and `motion-reduce:transition-none` stay as-is. No behaviour change — same durations, now token-backed.
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `pnpm --filter web test -- ChronicleView`
-Expected: PASS.
+Run: `pnpm --filter web test -- motion-css NarratorCarousel App`
+Expected: PASS. (`NarratorCarousel` + `App` existing tests must stay green — this is a no-behaviour-change pass.)
 
-- [ ] **Step 5: Reduced-motion check**
+- [ ] **Step 5: Full check**
 
-In the browser devtools, emulate `prefers-reduced-motion: reduce`, replay the flow. No travel, no stagger, no pulse. Compare with the transitions bundle's "Reduced motion" toggle.
+Run: `pnpm --filter web test` then `pnpm --filter web build`
+Expected: all green, build clean. Optionally, `pnpm dev:all` + web dev server: walk a stage change and confirm the card fades/rises in rather than hard-cutting.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add apps/web/src/App.tsx apps/web/src/index.css apps/web/src/views/ChronicleView.tsx apps/web/src/views/NarratorCarousel.tsx apps/web/src/views/test/ChronicleView.stagger.test.tsx
-git commit -m "feat(web): card entrance + chronicle stagger, all on --dur tokens"
+git add apps/web/src/App.tsx apps/web/src/index.css apps/web/src/views/NarratorCarousel.tsx apps/web/src/test/motion-css.test.ts
+git commit -m "feat(web): card entrance + shared stagger keyframe, carousel durations tokenised"
 ```
 
 ---
@@ -1109,6 +1118,7 @@ git commit -m "feat(web): ConfirmView gate — read-only default, Edit toggle, h
 - Tab strip: "transcript + chronicle" (active, `inset 0 -2px 0 0 var(--accent)` underline), "audio", "share" (inert `#9397ab` — no panels behind them this pass; they're visual only, mark with `aria-disabled`). Right-aligned meta `{selectedFlavour} · job {jobId}`.
 - Word count in the chronicle meta (`2:04 · {wordCount} words`) — `wordCount` derived locally from `chronicleText`.
 - **No title element** — the narrator-name kicker stays as the only heading (Global Constraint).
+- **Entrance stagger (moved here from Task 7):** the four right-column blocks — narrator kicker+text container, first paragraph, payoff line, player bar — each get `data-stagger` set to its index (`"0"`..`"3"`), the `stagger-block` utility class (shipped by Task 7), and `style={{ ['--stagger-index' as any]: n }}`. This gives the handoff's "card settles first, then the text arrives" beat (0 / 80 / 160 / 240ms via `--stag-delay`). The `jobOutcome` early-return (`EmptyStateShell`) is NOT staggered — errors get no motion.
 
 - [ ] **Step 1: Update the test**
 
@@ -1131,6 +1141,24 @@ it('shows a derived word count in the chronicle meta', () => {
     flavours={[]} selectedFlavour="medieval" retellAs={() => {}} jobOutcome={null} restart={() => {}} jobId="8f31" />)
   expect(screen.getByText(/5 words/)).toBeInTheDocument()
 })
+
+it('assigns ascending stagger indices to the four right-column blocks', () => {
+  const { container } = render(<ChronicleView
+    chronicleText={'A legend.\n\nThe payoff.'} audioKey="tts-x.mp3" transcript="t"
+    flavours={[{ key: 'medieval', name: 'Medieval Chronicler', description: 'x' }]}
+    selectedFlavour="medieval" retellAs={() => {}} jobOutcome={null} restart={() => {}} jobId="8f31"
+  />)
+  const idx = [...container.querySelectorAll('[data-stagger]')].map((el) => Number((el as HTMLElement).dataset.stagger))
+  expect(idx).toEqual([0, 1, 2, 3])
+})
+
+it('does not stagger the expired/failed empty state', () => {
+  const { container } = render(<ChronicleView
+    chronicleText={null} audioKey={null} transcript="t" flavours={[]}
+    selectedFlavour="medieval" retellAs={() => {}} jobOutcome={'expired'} restart={() => {}} jobId="8f31"
+  />)
+  expect(container.querySelectorAll('[data-stagger]')).toHaveLength(0)
+})
 ```
 
 - [ ] **Step 2: Run to verify it fails**
@@ -1141,6 +1169,8 @@ Expected: FAIL.
 - [ ] **Step 3: Implement**
 
 Rework the right column: kicker → body paragraphs (first `#9397ab`, second `padding-left:16px; border-left:2px solid var(--accent)`) → the custom player bar. Player bar: `<button data-testid="btn-playpause">` toggling `audioRef.current.play()/.pause()` and an `isPlaying` state (listen to `play`/`pause`/`timeupdate`/`loadedmetadata` events). Render 44 `<div data-wavebar style={{ height, background }}>`. Keep `<audio ref={audioRef} data-testid="tts-player" src={/api/v1/pipeline/audio/${audioKey}} className="hidden" />`. Tab strip above the two-column grid. The `jobOutcome` early-return path stays (`EmptyStateShell`).
+
+Apply the entrance stagger: the four blocks (kicker+text container, first paragraph, payoff line, player bar) each get `data-stagger="0"`..`"3"`, `className="stagger-block ..."`, and `style={{ ['--stagger-index' as any]: n }}`. `stagger-block` / `stagger-in` are already in `index.css` from Task 7. Do NOT add stagger to the `EmptyStateShell` branch.
 
 - [ ] **Step 4: Run to verify it passes**
 
