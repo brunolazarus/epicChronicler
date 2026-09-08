@@ -1,30 +1,5 @@
-import { Button } from '@/components/ui/button.js'
 import { Card } from '@/components/ui/card.js'
-
-type StageKey = 'transcribe' | 'rewrite' | 'narrate'
-type StageStatus = 'done' | 'active' | 'queued' | 'failed' | 'blocked'
-
-export interface PipelineStage {
-  key: StageKey
-  status: StageStatus
-  pct: number
-}
-
-const STAGE_LABEL: Record<StageKey, string> = {
-  transcribe: 'transcribe · groq whisper v3',
-  rewrite: 'rewrite · claude sonnet',
-  narrate: 'narrate · kokoro 82m',
-}
-const STAGE_ERROR_TITLE: Record<StageKey, string> = {
-  transcribe: 'Transcription failed',
-  rewrite: 'The narrator couldn’t finish this one',
-  narrate: 'Narration didn’t come through',
-}
-const STAGE_RETRY_LABEL: Record<StageKey, string> = {
-  transcribe: 'Retry transcription',
-  rewrite: 'Retry rewrite',
-  narrate: 'Retry narration',
-}
+import { PipelineStrip, type PipelineStage } from './PipelineStrip.js'
 
 export function ProcessingView({ stages, transcriptionMs, flavourKey, voice, generateError, onRetry }: {
   stages: PipelineStage[]
@@ -51,52 +26,12 @@ export function ProcessingView({ stages, transcriptionMs, flavourKey, voice, gen
         </div>
 
         <div className="bg-panel px-[26px] pb-[30px] pt-7">
-          <div className="flex flex-col gap-[18px] font-mono text-xs leading-[1.5]">
-            {stages.map((stage) => {
-              const statusColor =
-                stage.status === 'failed' ? 'text-error-fg'
-                : stage.status === 'done' || stage.status === 'active' ? 'text-accent'
-                : 'text-fg-muted'
-              const statusText =
-                stage.status === 'done' ? (stage.key === 'transcribe' ? `done ${transcriptionMs}ms` : 'done')
-                : stage.status === 'active' ? `${stage.pct}%`
-                : stage.status === 'queued' ? 'queued'
-                : stage.status === 'failed' ? `failed at ${stage.pct}%`
-                : 'blocked'
-              const fillVar =
-                stage.status === 'done' || stage.status === 'active' ? 'var(--accent)'
-                : stage.status === 'failed' ? 'var(--error)'
-                : null
-
-              return (
-                <div key={stage.key}>
-                  <div className="flex justify-between">
-                    <span>{STAGE_LABEL[stage.key]}</span>
-                    <span className={statusColor}>{statusText}</span>
-                  </div>
-                  <div className="mt-[7px] h-0.5 overflow-hidden rounded-[1px] bg-line">
-                    {fillVar && (
-                      <div
-                        className="h-full rounded-[1px]"
-                        style={{ width: `${stage.pct}%`, background: fillVar, boxShadow: `0 0 10px ${fillVar}` }}
-                      />
-                    )}
-                  </div>
-                  {stage.status === 'failed' && (
-                    <div className="mt-3 rounded-r-lg border border-error-line border-l-2 border-l-error bg-error-ghost px-[15px] py-[13px]">
-                      <div className="mb-1.5 font-sans text-[12.5px] font-medium text-error-fg">
-                        {STAGE_ERROR_TITLE[stage.key]}
-                      </div>
-                      <p className="mb-3 font-sans text-xs leading-[1.6] text-fg-soft">{generateError}</p>
-                      <Button variant="error" size="sm" onClick={onRetry} className="font-sans">
-                        {STAGE_RETRY_LABEL[stage.key]}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+          <PipelineStrip
+            stages={stages}
+            transcriptionMs={transcriptionMs}
+            generateError={generateError}
+            onRetry={onRetry}
+          />
 
           <div className="mt-[26px] border-t border-line pt-5 font-mono text-[11.5px] leading-[1.9] text-fg-muted">
             <div>&gt; upload accepted</div>

@@ -7,9 +7,10 @@ import { validateAudioFile } from '../models/validateAudioFile.js'
 
 const DEFAULT_FLAVOUR = 'medieval'
 
+import type { PipelineStage } from '../views/PipelineStrip.js'
+
 type Stage = 'landing' | 'review' | 'processing' | 'result'
-type PipelineStageStatus = 'done' | 'active' | 'queued' | 'failed' | 'blocked'
-interface PipelineStage { key: 'transcribe' | 'rewrite' | 'narrate'; status: PipelineStageStatus; pct: number }
+type PipelineStageStatus = 'done' | 'active' | 'queued' | 'failed' | 'blocked' | 'held'
 
 export function useChroniclePresenter() {
   const { data: flavours } = useFlavours()
