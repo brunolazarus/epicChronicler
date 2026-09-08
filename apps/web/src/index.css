@@ -69,6 +69,45 @@
     --accent-line: color-mix(in srgb, var(--accent) 34%, transparent);
   }
 
+  /* Record-ring travel target, per pipeline stage. Offsets are measured from the ring wrapper,
+     which starts at the top of the scene band. `--ring-left` positions the ring's left edge, so
+     anything that wants the ring centred subtracts half of --ring-size.
+     Landing: centre of the hero grid's right column — .85fr of (band inner width - 40px gap),
+     which is why the fraction is 0.2875 (= .85 / 2 / 2 + gap share). Marker stages: card left
+     edge (max-w-760 / max-w-1080, min 24px page padding) + 20px card-header padding + 40px. */
+  [data-stage="landing"] {
+    --ring-size: 200px;
+    --ring-left: calc(50% + (min(100vw, 1280px) - 136px) * 0.2875 + 20px - var(--ring-size) / 2);
+    --ring-top: calc((420px - var(--ring-size)) / 2);
+  }
+  [data-stage="landing"][data-recording="true"] { --ring-size: 228px; }
+
+  [data-stage="review"], [data-stage="processing"] {
+    --ring-size: 34px;
+    --ring-left: calc(max(0px, 50% - 380px) + 70px);
+    --ring-top: 427px;
+  }
+  [data-stage="result"] {
+    --ring-size: 34px;
+    --ring-left: calc(max(0px, 50% - 540px) + 72px);
+    --ring-top: 198px;
+  }
+
+  @media (max-width: 767px) {
+    [data-stage="landing"] {
+      --ring-size: 160px;
+      --ring-left: calc(50% - var(--ring-size) / 2);
+      --ring-top: 404px;
+    }
+    [data-stage="landing"][data-recording="true"] { --ring-size: 180px; }
+
+    [data-stage="review"], [data-stage="processing"] { --ring-left: 46px; }
+    [data-stage="result"] { --ring-left: 48px; }
+
+    /* beats SceneBand's inline height: the hero copy plus the ring do not fit in 420px on a phone */
+    [data-stage="landing"] [data-testid="scene-band"] { height: 600px !important; }
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { background: var(--color-ground); }
   body {

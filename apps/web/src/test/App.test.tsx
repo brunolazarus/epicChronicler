@@ -26,15 +26,29 @@ describe('App', () => {
     renderApp()
     await waitFor(() => expect(screen.getByTestId('carousel-chip-medieval')).toBeInTheDocument())
 
+    expect(screen.getByText(/Every night out is a legend waiting for a narrator\./)).toBeInTheDocument()
+    expect(screen.getByTestId('carousel-chip-medieval')).toBeInTheDocument()
+
+    const ringOnLanding = screen.getByTestId('ring-wrapper')
+    const bandOnLanding = screen.getByTestId('scene-band')
+
     await userEvent.click(screen.getByTestId('carousel-chip-medieval'))
     const file = new File(['bytes'], 'recording.mp3', { type: 'audio/mpeg' })
     await userEvent.upload(screen.getByTestId('audio-file'), file)
 
     await waitFor(() => expect(screen.getByTestId('transcript')).toHaveValue('a wild tale'))
+    expect(screen.getByTestId('ring-wrapper')).toBe(ringOnLanding)
+    expect(screen.getByTestId('scene-band')).toBe(bandOnLanding)
+
     await userEvent.click(screen.getByTestId('btn-generate'))
 
     await waitFor(() => expect(screen.getByTestId('chronicle-text')).toHaveTextContent('Here follows the chronicle...'))
     expect(screen.getByTestId('tts-player')).toHaveAttribute('src', '/api/v1/pipeline/audio/tts-1.mp3')
     expect(document.querySelector('[data-flavour="medieval"]')).not.toBeNull()
+    expect(document.querySelector('[data-stage="result"]')).not.toBeNull()
+    // the shell's three elements survived every stage change without remounting
+    expect(screen.getByTestId('ring-wrapper')).toBe(ringOnLanding)
+    expect(screen.getByTestId('scene-band')).toBe(bandOnLanding)
+    expect(screen.getByTestId('pipeline-strip')).toBeInTheDocument()
   })
 })

@@ -1,8 +1,6 @@
 import { Button } from '@/components/ui/button.js'
 import { MicrophoneSlashIcon } from '@/lib/icons.js'
 
-const SIZE = { hero: 200, timer: 228, marker: 34 } as const
-
 export function RecordRing({
   slot,
   micError,
@@ -28,14 +26,10 @@ export function RecordRing({
   const isMarker = slot === 'marker'
   const interactive = !isMarker && !micError
 
-  const sizing =
-    slot === 'hero'
-      ? undefined
-      : { height: SIZE[slot], width: SIZE[slot] }
   const label = micError ? 'MIC BLOCKED' : slot === 'timer' ? elapsedLabel : isRecording ? 'Stop' : 'RECORD'
 
   return (
-    <div className="flex flex-col items-center gap-5" {...rest}>
+    <div className="flex w-full flex-col items-center gap-5" {...rest}>
       <div
         data-testid={isMarker ? undefined : 'btn-record'}
         role={isMarker ? undefined : 'button'}
@@ -52,10 +46,8 @@ export function RecordRing({
                 }
               }
         }
-        style={sizing}
         className={[
-          'relative flex items-center justify-center',
-          slot === 'hero' ? 'h-[clamp(160px,44vw,200px)] w-[clamp(160px,44vw,200px)]' : '',
+          'relative flex aspect-square w-full shrink-0 items-center justify-center',
           !isMarker && !micError ? 'cursor-pointer' : 'cursor-default',
         ].join(' ')}
       >

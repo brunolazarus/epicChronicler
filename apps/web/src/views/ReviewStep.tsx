@@ -8,7 +8,7 @@ export function ReviewStep({ transcript, setTranscript, confirmTranscript }: {
   confirmTranscript: () => void
 }) {
   return (
-    <div className="mx-auto my-16 max-w-[760px] px-6 md:my-20 md:px-12">
+    <div className="mx-auto mb-16 max-w-[760px] px-6 md:mb-20 md:px-12">
       <Card className="px-[26px] py-7">
         <div className="mb-4 font-mono text-[11px] uppercase tracking-[.14em] text-fg-faint">What you said</div>
         <Textarea

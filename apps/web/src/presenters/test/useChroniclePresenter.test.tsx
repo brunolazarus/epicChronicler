@@ -20,6 +20,35 @@ function wrapper({ children }: { children: React.ReactNode }) {
   )
 }
 
+class FakeMediaRecorder {
+  mimeType = 'audio/webm'
+  ondataavailable: ((e: { data: Blob }) => void) | null = null
+  onstop: (() => void) | null = null
+  start() {}
+  stop() {
+    this.ondataavailable?.({ data: new Blob(['audio'], { type: 'audio/webm' }) })
+    this.onstop?.()
+  }
+}
+
+function installRecorder({ denied = false } = {}) {
+  const originalMediaDevices = navigator.mediaDevices
+  const originalRecorder = globalThis.MediaRecorder
+  Object.defineProperty(navigator, 'mediaDevices', {
+    value: {
+      getUserMedia: denied
+        ? vi.fn().mockRejectedValue(new Error('denied'))
+        : vi.fn().mockResolvedValue({ getTracks: () => [{ stop: vi.fn() }] }),
+    },
+    configurable: true,
+  })
+  globalThis.MediaRecorder = FakeMediaRecorder as unknown as typeof MediaRecorder
+  return () => {
+    Object.defineProperty(navigator, 'mediaDevices', { value: originalMediaDevices, configurable: true })
+    globalThis.MediaRecorder = originalRecorder
+  }
+}
+
 describe('useChroniclePresenter', () => {
   it('loads flavours, defaults to the medieval narrator, and lets you select another', async () => {
     vi.mocked(client.GET).mockResolvedValue({
@@ -161,5 +190,63 @@ describe('useChroniclePresenter', () => {
 
     await waitFor(() => expect(result.current.jobOutcome).toBe('expired'))
     expect(result.current.stage).toBe('result')
+  })
+
+  it('starts recording, and stopping uploads the captured audio', async () => {
+    vi.mocked(client.GET).mockResolvedValue({ data: [], error: undefined, response: new Response() } as never)
+    vi.mocked(client.POST).mockResolvedValue({ data: { jobId: 'up-1', status: 'queued' }, error: undefined, response: new Response() } as never)
+    const restore = installRecorder()
+
+    try {
+      const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
+      await waitFor(() => expect(result.current.flavours).toEqual([]))
+      expect(result.current.isRecording).toBe(false)
+
+      await act(async () => { await result.current.startRecording() })
+      expect(result.current.isRecording).toBe(true)
+      expect(result.current.elapsedLabel).toBe('0:00')
+
+      act(() => result.current.stopRecording())
+
+      await waitFor(() => expect(result.current.isRecording).toBe(false))
+      expect(client.POST).toHaveBeenCalledWith('/api/v1/pipeline/upload', expect.anything())
+    } finally {
+      restore()
+    }
+  })
+
+  it('flags micError when the browser denies the microphone', async () => {
+    vi.mocked(client.GET).mockResolvedValue({ data: [], error: undefined, response: new Response() } as never)
+    const restore = installRecorder({ denied: true })
+
+    try {
+      const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
+      await waitFor(() => expect(result.current.flavours).toEqual([]))
+
+      await act(async () => { await result.current.startRecording() })
+
+      expect(result.current.micError).toBe(true)
+      expect(result.current.isRecording).toBe(false)
+      expect(result.current.uploadNotice).toBeNull()
+    } finally {
+      restore()
+    }
+  })
+
+  it('builds an upload notice, clears it on "Record instead", and does not swallow the next error', async () => {
+    vi.mocked(client.GET).mockResolvedValue({ data: [], error: undefined, response: new Response() } as never)
+
+    const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
+    await waitFor(() => expect(result.current.flavours).toEqual([]))
+
+    act(() => result.current.tryUploadAudio(new File(['x'], 'voice.aiff', { type: 'audio/aiff' })))
+    expect(result.current.uploadNotice).toMatchObject({ title: "That format isn't supported", detail: 'aiff' })
+
+    act(() => result.current.clearUploadError())
+    expect(result.current.uploadNotice).toBeNull()
+
+    // a fresh attempt must reset the dismissal, or the next real error is swallowed
+    act(() => result.current.tryUploadAudio(new File(['x'], 'voice.aiff', { type: 'audio/aiff' })))
+    expect(result.current.uploadNotice).toMatchObject({ title: "That format isn't supported" })
   })
 })
