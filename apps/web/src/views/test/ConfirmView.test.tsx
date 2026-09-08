@@ -32,6 +32,17 @@ describe('ConfirmView', () => {
     expect(confirmTranscript).toHaveBeenCalled()
   })
 
+  it('reverts to the pre-edit transcript on Discard', async () => {
+    const setTranscript = vi.fn()
+    render(<ConfirmView {...base} setTranscript={setTranscript} />)
+    await userEvent.click(screen.getByTestId('btn-edit-transcript'))
+    await userEvent.type(screen.getByTestId('transcript'), '!')
+    expect(setTranscript).toHaveBeenCalled()
+    await userEvent.click(screen.getByText('Discard'))
+    expect(setTranscript).toHaveBeenLastCalledWith('we got lost on the trail')
+    expect(screen.queryByTestId('transcript')).toBeNull()
+  })
+
   it('omits the recording label when it is unknown (upload path)', () => {
     render(<ConfirmView {...base} recordingLabel={null} />)
     expect(screen.queryByText(/audio$/)).toBeNull()

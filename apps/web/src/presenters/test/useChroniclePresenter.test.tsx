@@ -102,6 +102,28 @@ describe('useChroniclePresenter', () => {
     expect(result.current.transcript).toBe('a tale')
   })
 
+  it('holds the rewrite and reports the footer data while on review', async () => {
+    vi.mocked(client.GET).mockImplementation(async (path: string) => {
+      if (path === '/api/v1/pipeline/flavours') {
+        return { data: [{ key: 'medieval', name: 'Medieval Chronicler', description: 'A scribe' }], error: undefined, response: new Response() } as never
+      }
+      return { data: { status: 'completed', progress: 100, result: { transcript: 'a tale' }, error: null }, error: undefined, response: new Response() } as never
+    })
+    vi.mocked(client.POST).mockResolvedValue({ data: { jobId: 'up-1', status: 'queued' }, error: undefined, response: new Response() } as never)
+
+    const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
+    await waitFor(() => expect(result.current.flavours.length).toBe(1))
+
+    act(() => result.current.tryUploadAudio(new File(['x'], 'a.webm', { type: 'audio/webm' })))
+    await waitFor(() => expect(result.current.stage).toBe('review'))
+
+    act(() => result.current.setTranscript('a wild tale'))
+    expect(result.current.stages[1]).toMatchObject({ key: 'rewrite', status: 'held' })
+    expect(result.current.stages[2]).toMatchObject({ key: 'narrate', status: 'queued' })
+    expect(result.current.transcriptWordCount).toBe(3)
+    expect(result.current.recordingLabel).toBeNull()
+  })
+
   it('rejects an invalid file without calling the upload API', async () => {
     vi.mocked(client.GET).mockResolvedValue({ data: [], error: undefined, response: new Response() } as never)
     const { result } = renderHook(() => useChroniclePresenter(), { wrapper })

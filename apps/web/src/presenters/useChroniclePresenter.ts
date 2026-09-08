@@ -27,6 +27,8 @@ export function useChroniclePresenter() {
 
   const [isRecording, setIsRecording] = useState(false)
   const [elapsed, setElapsed] = useState(0)
+  // Task 10 destructures the setter and captures the duration when a recording stops; until then
+  // recordingLabel is always null and the confirm card omits it (the upload path never has one).
   const [recordingSeconds] = useState<number | null>(null)
   const [uploadNoticeDismissed, setUploadNoticeDismissed] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
