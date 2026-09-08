@@ -19,8 +19,11 @@ test('full journey: flavour, upload, transcript, generate, playback', async ({ p
     { timeout: 10_000 },
   )
 
+  // the <audio> is hidden behind the custom player bar, so it is attached but never visible
+  await expect(page.getByTestId('btn-playpause')).toBeVisible()
+
   const player = page.getByTestId('tts-player')
-  await expect(player).toBeVisible()
+  await expect(player).toBeAttached()
 
   const src = await player.getAttribute('src')
   expect(src).toMatch(/^\/api\/v1\/pipeline\/audio\/tts-.*\.mp3$/)
