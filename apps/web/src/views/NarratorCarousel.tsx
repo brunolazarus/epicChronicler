@@ -56,9 +56,21 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
 
           <div
             className="flex-1 overflow-hidden py-2.5"
+            tabIndex={0}
+            role="group"
+            aria-label="Narrator carousel"
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
             onPointerCancel={() => { downX.current = null }}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft') {
+                e.preventDefault()
+                prev()
+              } else if (e.key === 'ArrowRight') {
+                e.preventDefault()
+                next()
+              }
+            }}
           >
             <div
               className={[
@@ -107,8 +119,11 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
 
         <div className="mt-5 flex justify-center gap-1.5">
           {flavours.map((f, i) => (
-            <div
+            <button
               key={f.key}
+              data-testid={`carousel-dot-${f.key}`}
+              aria-label={`Go to ${f.name}`}
+              onClick={() => selectFlavour(f.key)}
               className={`h-1.5 rounded-full transition-all duration-[var(--dur-dots)] motion-reduce:transition-none ${i === activeIndex ? 'w-[22px] bg-accent' : 'w-1.5 bg-line-muted'}`}
             />
           ))}
