@@ -1,8 +1,11 @@
+/// <reference types="vitest" />
+/// @vitest-environment node
+
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
+const css = readFileSync(fileURLToPath(new URL('../index.css', import.meta.url)), 'utf8')
 
 describe('index.css motion + accent tokens', () => {
   it('defines the five motion duration tokens and the shared easing', () => {
