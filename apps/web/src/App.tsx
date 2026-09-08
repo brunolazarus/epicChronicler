@@ -6,7 +6,7 @@ import { PipelineStrip } from "./views/PipelineStrip.js";
 import { NoticeCard } from "./views/NoticeCard.js";
 import { HeroCopyGrid } from "./views/HeroCopyGrid.js";
 import { LandingView } from "./views/LandingView.js";
-import { ReviewStep } from "./views/ReviewStep.js";
+import { ConfirmView } from "./views/ConfirmView.js";
 import { ProcessingView } from "./views/ProcessingView.js";
 import { ChronicleView } from "./views/ChronicleView.js";
 import { useChroniclePresenter } from "./presenters/useChroniclePresenter.js";
@@ -60,10 +60,13 @@ function Flow() {
     );
   } else if (p.stage === "review") {
     card = (
-      <ReviewStep
+      <ConfirmView
         transcript={p.transcript}
         setTranscript={p.setTranscript}
         confirmTranscript={p.confirmTranscript}
+        selectedFlavour={p.selectedFlavour ?? "medieval"}
+        recordingLabel={p.recordingLabel}
+        wordCount={p.transcriptWordCount}
       />
     );
   } else if (p.stage === "processing") {

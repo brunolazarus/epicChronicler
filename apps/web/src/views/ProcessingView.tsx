@@ -11,9 +11,10 @@ export function ProcessingView({ stages, flavourKey, voice }: {
   return (
     <div className="mx-auto mb-16 max-w-[760px] px-6 md:mb-20 md:px-12">
       <Card className="overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,.45)]">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-panel-raised px-[22px] py-3.5">
+        <div className="flex flex-wrap items-center gap-x-[13px] gap-y-2 border-b border-line bg-panel-raised px-[22px] py-3.5">
+          <div className="h-[34px] w-[34px] flex-none" aria-hidden />
           <span className="font-mono text-[12.5px] font-medium uppercase tracking-[.1em]">TELLING YOUR STORY</span>
-          <div className={`flex items-center gap-[7px] font-mono text-[11px] ${hasFailure ? 'text-error-fg' : 'text-fg-muted'}`}>
+          <div className={`ml-auto flex items-center gap-[7px] font-mono text-[11px] ${hasFailure ? 'text-error-fg' : 'text-fg-muted'}`}>
             <div
               className={`h-1.5 w-1.5 rounded-full ${hasFailure ? 'bg-error' : 'bg-accent animate-recpulse'}`}
               style={{ boxShadow: `0 0 10px ${hasFailure ? 'var(--error)' : 'var(--accent)'}` }}

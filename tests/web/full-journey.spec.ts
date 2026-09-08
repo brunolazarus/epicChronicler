@@ -9,10 +9,8 @@ test('full journey: flavour, upload, transcript, generate, playback', async ({ p
 
   await page.getByTestId('audio-file').setInputFiles('tests/fixtures/sample.mp3')
 
-  await expect(page.getByTestId('transcript')).toHaveValue(
-    "Alex said: we got lost on the trail for two hours before finding the summit marker. Sam said: worth it for the view, even though my feet are still recovering.",
-    { timeout: 10_000 },
-  )
+  // transcript now shows read-only by default
+  await expect(page.getByText(/we got lost on the trail/i)).toBeVisible({ timeout: 10_000 })
 
   await page.getByTestId('btn-generate').click()
 

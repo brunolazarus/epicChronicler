@@ -8,6 +8,10 @@ import type { PipelineStage } from '../views/PipelineStrip.js'
 
 const DEFAULT_FLAVOUR = 'medieval'
 
+function formatMSS(s: number) {
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
+
 type Stage = 'landing' | 'review' | 'processing' | 'result'
 
 export function useChroniclePresenter() {
@@ -23,6 +27,7 @@ export function useChroniclePresenter() {
 
   const [isRecording, setIsRecording] = useState(false)
   const [elapsed, setElapsed] = useState(0)
+  const [recordingSeconds] = useState<number | null>(null)
   const [uploadNoticeDismissed, setUploadNoticeDismissed] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -130,7 +135,12 @@ export function useChroniclePresenter() {
   const rewriteFailed = generateFailed && generateProgress < 60
   const narrateFailed = generateFailed && generateProgress >= 60
 
-  const stages: PipelineStage[] = [
+  // The rewrite is paid work, so it is held until the user confirms the transcript.
+  const stages: PipelineStage[] = stage === 'review' ? [
+    { key: 'transcribe', status: 'done', pct: 100 },
+    { key: 'rewrite', status: 'held', pct: 0 },
+    { key: 'narrate', status: 'queued', pct: 0 },
+  ] : [
     { key: 'transcribe', status: 'done', pct: 100 },
     {
       key: 'rewrite',
@@ -203,7 +213,9 @@ export function useChroniclePresenter() {
     setUploadValidationError(null)
   }
 
-  const elapsedLabel = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`
+  const elapsedLabel = formatMSS(elapsed)
+  const recordingLabel = recordingSeconds == null ? null : `${formatMSS(recordingSeconds)} audio`
+  const transcriptWordCount = transcript.trim() ? transcript.trim().split(/\s+/).length : 0
 
   return {
     flavours,
@@ -220,6 +232,8 @@ export function useChroniclePresenter() {
     clearUploadError,
     isRecording,
     elapsedLabel,
+    recordingLabel,
+    transcriptWordCount,
     startRecording,
     stopRecording,
     openFilePicker,

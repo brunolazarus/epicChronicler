@@ -37,7 +37,7 @@ describe('App', () => {
     const file = new File(['bytes'], 'recording.mp3', { type: 'audio/mpeg' })
     await userEvent.upload(screen.getByTestId('audio-file'), file)
 
-    await waitFor(() => expect(screen.getByTestId('transcript')).toHaveValue('a wild tale'))
+    await waitFor(() => expect(screen.getByText('a wild tale')).toBeInTheDocument())
     expect(screen.getByTestId('ring-wrapper').firstElementChild).toBe(ringBoxOnLanding)
     expect(screen.getByTestId('scene-band')).toBe(bandOnLanding)
     const stripOnReview = screen.getByTestId('pipeline-strip')
