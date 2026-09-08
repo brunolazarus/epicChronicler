@@ -18,4 +18,14 @@ describe('NoticeCard', () => {
     await userEvent.click(screen.getByText('Record instead'))
     expect(onSecondary).toHaveBeenCalled()
   })
+
+  it('renders the rejected-file strip when file fields are supplied', () => {
+    render(<NoticeCard title="That file is too large" body="…" detail="ERR_FILE_TOO_LARGE"
+      fileName="night-out-full.m4a" value="68.4 MB" limit="limit 25 MB"
+      onPrimary={() => {}} primaryLabel="Choose another file" onSecondary={() => {}} secondaryLabel="Record instead" />)
+    expect(screen.getByText('night-out-full.m4a')).toBeInTheDocument()
+    expect(screen.getByText('68.4 MB')).toBeInTheDocument()
+    expect(screen.getByText('limit 25 MB')).toBeInTheDocument()
+    expect(screen.getByText('ERR_FILE_TOO_LARGE')).toBeInTheDocument()
+  })
 })

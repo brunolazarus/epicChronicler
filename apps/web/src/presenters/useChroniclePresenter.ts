@@ -49,7 +49,7 @@ export function useChroniclePresenter() {
   const [transcript, setTranscript] = useState('')
   const [micError, setMicError] = useState(false)
   const [uploadValidationError, setUploadValidationError] = useState<
-    { code: 'too-large' | 'unsupported-format'; detail: string } | null
+    { code: 'too-large' | 'unsupported-format'; fileName: string; value: string; limit: string } | null
   >(null)
 
   const [isRecording, setIsRecording] = useState(false)
@@ -92,7 +92,7 @@ export function useChroniclePresenter() {
     setUploadNoticeDismissed(false)
     const check = validateAudioFile(file)
     if (!check.ok) {
-      setUploadValidationError({ code: check.code, detail: check.detail })
+      setUploadValidationError({ code: check.code, fileName: check.fileName, value: check.value, limit: check.limit })
       return
     }
     setUploadValidationError(null)
@@ -219,23 +219,37 @@ export function useChroniclePresenter() {
 
   const uploadError = uploadPoll.data?.error ?? null
 
+  const VALIDATION_DETAIL = {
+    'too-large': 'ERR_FILE_TOO_LARGE',
+    'unsupported-format': 'ERR_UNSUPPORTED_FORMAT',
+  } as const
+
   const notice = uploadValidationError
     ? uploadValidationError.code === 'too-large'
       ? {
           title: 'That file is too large',
           body: 'Chronicler takes recordings up to 25 MB — around 25 minutes of speech. Trim the file, or record directly in the browser instead.',
-          detail: uploadValidationError.detail,
+          detail: VALIDATION_DETAIL[uploadValidationError.code],
+          fileName: uploadValidationError.fileName,
+          value: uploadValidationError.value,
+          limit: uploadValidationError.limit,
         }
       : {
           title: "That format isn't supported",
           body: 'Chronicler reads webm, mp3, m4a, wav and ogg. Convert the file, or record directly in the browser instead.',
-          detail: uploadValidationError.detail,
+          detail: VALIDATION_DETAIL[uploadValidationError.code],
+          fileName: uploadValidationError.fileName,
+          value: uploadValidationError.value,
+          limit: uploadValidationError.limit,
         }
     : uploadStatus === 'error'
       ? {
           title: "That recording couldn't be transcribed",
           body: 'Something went wrong turning your recording into text. Try uploading it again, or record a new one.',
           detail: uploadError ?? 'unknown error',
+          fileName: undefined as string | undefined,
+          value: undefined as string | undefined,
+          limit: undefined as string | undefined,
         }
       : null
 

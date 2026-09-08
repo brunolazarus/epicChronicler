@@ -1,25 +1,6 @@
 import { Button } from '@/components/ui/button.js'
 import { Card } from '@/components/ui/card.js'
-
-function ClockIcon({ className }: { className?: string }) {
-  return (
-    <svg width={34} height={34} viewBox="0 0 256 256" fill="none" stroke="currentColor"
-      strokeWidth={16} strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <circle cx={128} cy={128} r={96} />
-      <path d="M128,72v56h48" />
-    </svg>
-  )
-}
-function WarningIcon({ className }: { className?: string }) {
-  return (
-    <svg width={34} height={34} viewBox="0 0 256 256" fill="none" stroke="currentColor"
-      strokeWidth={16} strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <circle cx={128} cy={128} r={96} />
-      <line x1={128} y1={76} x2={128} y2={140} />
-      <circle cx={128} cy={176} r={8} fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
+import { ClockCounterClockwiseIcon, WarningCircleIcon } from '@/lib/icons.js'
 
 export function EmptyStateShell({ kind, jobId, onPrimary }: {
   kind: 'expired' | 'generic'
@@ -54,14 +35,18 @@ export function EmptyStateShell({ kind, jobId, onPrimary }: {
           <div className={`absolute inset-0 rounded-full border border-dashed ${isExpired ? 'border-line-muted' : 'border-error-line'}`} />
           <div className="absolute inset-5 rounded-full bg-abyss/50" />
           <div className={`relative flex ${markColor}`}>
-            {isExpired ? <ClockIcon /> : <WarningIcon />}
+            {isExpired ? <ClockCounterClockwiseIcon size={34} /> : <WarningCircleIcon size={34} />}
           </div>
         </div>
         <h2 className="mb-3 text-2xl font-medium leading-tight tracking-[-.02em] text-fg">{title}</h2>
         <p className="mb-2 max-w-[400px] text-sm leading-[1.7] text-fg-soft">{body}</p>
         <p className="mb-[26px] max-w-full break-all font-mono text-[11.5px] leading-[1.6] text-fg-muted">{detail}</p>
         <div className="flex flex-wrap items-center justify-center gap-2.5">
-          <Button variant={isExpired ? 'outline' : 'error'} onClick={onPrimary}>
+          <Button
+            variant={isExpired ? 'outline' : 'error'}
+            onClick={onPrimary}
+            {...(!isExpired ? { 'data-error-control': true } : {})}
+          >
             {ctaLabel}
           </Button>
           {!isExpired && (

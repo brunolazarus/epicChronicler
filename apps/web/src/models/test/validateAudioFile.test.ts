@@ -7,13 +7,21 @@ describe('validateAudioFile', () => {
     expect(validateAudioFile(file)).toEqual({
       ok: false,
       code: 'too-large',
-      detail: expect.stringContaining('25'),
+      fileName: 'big.mp3',
+      value: '26.0 MB',
+      limit: 'limit 25 MB',
     })
   })
 
   it('rejects unsupported formats', () => {
     const file = new File(['bytes'], 'voice.aiff', { type: 'audio/aiff' })
-    expect(validateAudioFile(file)).toEqual({ ok: false, code: 'unsupported-format', detail: 'aiff' })
+    expect(validateAudioFile(file)).toEqual({
+      ok: false,
+      code: 'unsupported-format',
+      fileName: 'voice.aiff',
+      value: 'aiff',
+      limit: 'webm · mp3 · m4a · wav · ogg',
+    })
   })
 
   it('accepts a supported format under the size limit', () => {

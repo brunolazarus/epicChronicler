@@ -15,4 +15,13 @@ describe('EmptyStateShell', () => {
     await userEvent.click(screen.getByText('Try again'))
     expect(onPrimary).toHaveBeenCalled()
   })
+
+  it('renders an icon for each kind', () => {
+    const expired = render(<EmptyStateShell kind="expired" jobId="8f31" onPrimary={vi.fn()} />)
+    expect(expired.container.querySelector('svg')).toBeTruthy()
+    expired.unmount()
+
+    const generic = render(<EmptyStateShell kind="generic" jobId="8f31" onPrimary={vi.fn()} />)
+    expect(generic.container.querySelector('svg')).toBeTruthy()
+  })
 })

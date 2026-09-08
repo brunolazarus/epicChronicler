@@ -14,15 +14,22 @@ function WarningIcon() {
   )
 }
 
-export function NoticeCard({ title, body, detail, onPrimary, primaryLabel, onSecondary, secondaryLabel }: {
+export function NoticeCard({
+  title, body, detail, fileName, value, limit, onPrimary, primaryLabel, onSecondary, secondaryLabel,
+}: {
   title: string
   body: string
   detail: string
+  fileName?: string
+  value?: string
+  limit?: string
   onPrimary: () => void
   primaryLabel: string
   onSecondary: () => void
   secondaryLabel: string
 }) {
+  const showStrip = fileName !== undefined && value !== undefined && limit !== undefined
+
   return (
     <div className="w-full max-w-full overflow-hidden rounded-lg border border-error-line bg-panel">
       <div className="h-0.5 bg-gradient-to-r from-error to-transparent" />
@@ -31,11 +38,18 @@ export function NoticeCard({ title, body, detail, onPrimary, primaryLabel, onSec
           <WarningIcon />
         </div>
         <div className="flex-1">
-          <div className="mb-[7px] text-sm font-medium text-error-fg">{title}</div>
-          <p className="mb-2.5 max-w-[620px] text-[13px] leading-[1.65] text-fg-soft">{body}</p>
-          <div className="mb-[14px] flex items-center gap-2.5 rounded-md border border-line bg-surface px-3 py-[9px] font-mono text-[11.5px] text-error-fg">
-            {detail}
+          <div className="mb-[7px] flex items-baseline justify-between gap-3">
+            <span className="text-sm font-medium text-error-fg">{title}</span>
+            <span className="shrink-0 font-mono text-[11px] text-fg-muted">{detail}</span>
           </div>
+          <p className="mb-2.5 max-w-[620px] text-[13px] leading-[1.65] text-fg-soft">{body}</p>
+          {showStrip && (
+            <div className="mb-[14px] flex items-center gap-2.5 rounded-md border border-line bg-surface px-3 py-[9px] font-mono text-[11.5px]">
+              <span className="min-w-0 truncate text-fg">{fileName}</span>
+              <span className="shrink-0 text-error-fg">{value}</span>
+              <span className="ml-auto shrink-0 text-fg-muted">{limit}</span>
+            </div>
+          )}
           <div className="flex gap-2">
             <Button variant="error" size="sm" onClick={onPrimary}>
               {primaryLabel}

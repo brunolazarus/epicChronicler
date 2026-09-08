@@ -174,7 +174,12 @@ describe('useChroniclePresenter', () => {
 
     act(() => result.current.tryUploadAudio(new File(['x'], 'voice.aiff', { type: 'audio/aiff' })))
 
-    expect(result.current.uploadValidationError).toEqual({ code: 'unsupported-format', detail: 'aiff' })
+    expect(result.current.uploadValidationError).toEqual({
+      code: 'unsupported-format',
+      fileName: 'voice.aiff',
+      value: 'aiff',
+      limit: 'webm · mp3 · m4a · wav · ogg',
+    })
     expect(client.POST).not.toHaveBeenCalled()
   })
 
@@ -376,7 +381,13 @@ describe('useChroniclePresenter', () => {
     await waitFor(() => expect(result.current.flavours).toEqual([]))
 
     act(() => result.current.tryUploadAudio(new File(['x'], 'voice.aiff', { type: 'audio/aiff' })))
-    expect(result.current.uploadNotice).toMatchObject({ title: "That format isn't supported", detail: 'aiff' })
+    expect(result.current.uploadNotice).toMatchObject({
+      title: "That format isn't supported",
+      detail: 'ERR_UNSUPPORTED_FORMAT',
+      fileName: 'voice.aiff',
+      value: 'aiff',
+      limit: 'webm · mp3 · m4a · wav · ogg',
+    })
 
     act(() => result.current.clearUploadError())
     expect(result.current.uploadNotice).toBeNull()

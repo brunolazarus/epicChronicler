@@ -137,6 +137,9 @@ function Flow() {
                 title={p.uploadNotice.title}
                 body={p.uploadNotice.body}
                 detail={p.uploadNotice.detail}
+                fileName={p.uploadNotice.fileName}
+                value={p.uploadNotice.value}
+                limit={p.uploadNotice.limit}
                 primaryLabel="Choose another file"
                 onPrimary={p.openFilePicker}
                 secondaryLabel="Record instead"
