@@ -12,6 +12,33 @@ function formatMSS(s: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
 
+// Chromium reports `duration: Infinity` on `loadedmetadata` for a MediaRecorder webm blob
+// until more of the stream is read. Seeking past the end forces a `durationchange` with the
+// real value. See https://bugs.chromium.org/p/chromium/issues/detail?id=642012.
+function captureAudioDuration(probe: HTMLAudioElement, url: string, onDuration: (seconds: number | null) => void) {
+  const finish = (seconds: number | null) => {
+    onDuration(seconds)
+    URL.revokeObjectURL(url)
+  }
+  probe.addEventListener('loadedmetadata', () => {
+    if (Number.isFinite(probe.duration)) {
+      finish(Math.round(probe.duration))
+      return
+    }
+    probe.addEventListener(
+      'durationchange',
+      () => {
+        const seconds = Number.isFinite(probe.duration) ? Math.round(probe.duration) : null
+        probe.currentTime = 0
+        finish(seconds)
+      },
+      { once: true },
+    )
+    probe.currentTime = Number.MAX_SAFE_INTEGER
+  })
+  probe.addEventListener('error', () => finish(null))
+}
+
 type Stage = 'landing' | 'review' | 'processing' | 'result'
 
 export function useChroniclePresenter() {
@@ -98,10 +125,7 @@ export function useChroniclePresenter() {
 
         const url = URL.createObjectURL(blob)
         const probe = new Audio(url)
-        probe.addEventListener('loadedmetadata', () => {
-          setRecordingSeconds(Math.round(probe.duration))
-          URL.revokeObjectURL(url)
-        })
+        captureAudioDuration(probe, url, setRecordingSeconds)
 
         tryUploadAudio(new File([blob], `recording.${ext}`, { type: mimeType }))
         setIsRecording(false)

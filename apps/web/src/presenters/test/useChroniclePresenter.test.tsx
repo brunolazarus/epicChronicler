@@ -31,17 +31,39 @@ class FakeMediaRecorder {
   }
 }
 
-class FakeAudio {
-  duration = 137.6
-  listeners: Record<string, (() => void)[]> = {}
-  constructor(public src: string) {}
-  addEventListener(event: string, cb: () => void) {
-    (this.listeners[event] ??= []).push(cb)
-    if (event === 'loadedmetadata') cb()
+// Mirrors the real Chromium quirk this presenter works around: a fresh webm blob reports
+// `duration: Infinity` on `loadedmetadata`, and only reports the real value once something
+// seeks near the end (a `currentTime` write triggers `durationchange`).
+type AudioBehavior = 'finite' | 'seek-resolves' | 'seek-stays-infinite' | 'error'
+
+function makeFakeAudio(behavior: AudioBehavior, resolvedDuration: number) {
+  return class FakeAudio {
+    duration = behavior === 'finite' ? resolvedDuration : Infinity
+    listeners: Record<string, Array<() => void>> = {}
+    private _currentTime = 0
+    constructor(public src: string) {}
+    addEventListener(event: string, cb: () => void) {
+      (this.listeners[event] ??= []).push(cb)
+      if (event === 'loadedmetadata' && behavior !== 'error') cb()
+      if (event === 'error' && behavior === 'error') cb()
+    }
+    get currentTime() {
+      return this._currentTime
+    }
+    set currentTime(v: number) {
+      this._currentTime = v
+      if (v === 0) return
+      if (behavior === 'seek-resolves') this.duration = resolvedDuration
+      this.listeners['durationchange']?.forEach((cb) => cb())
+    }
   }
 }
 
-function installRecorder({ denied = false, audioDuration }: { denied?: boolean; audioDuration?: number } = {}) {
+function installRecorder({
+  denied = false,
+  audioDuration = 137.6,
+  audioBehavior = 'finite',
+}: { denied?: boolean; audioDuration?: number; audioBehavior?: AudioBehavior } = {}) {
   const originalMediaDevices = navigator.mediaDevices
   const originalRecorder = globalThis.MediaRecorder
   const originalAudio = globalThis.Audio
@@ -56,14 +78,9 @@ function installRecorder({ denied = false, audioDuration }: { denied?: boolean; 
     configurable: true,
   })
   globalThis.MediaRecorder = FakeMediaRecorder as unknown as typeof MediaRecorder
-  // jsdom does not implement blob URLs or media loading; the presenter only needs the calls to exist,
-  // so FakeAudio fires loadedmetadata synchronously with a stubbed duration.
-  globalThis.Audio = class extends FakeAudio {
-    constructor(src: string) {
-      super(src)
-      if (audioDuration != null) this.duration = audioDuration
-    }
-  } as unknown as typeof Audio
+  // jsdom does not implement blob URLs or media loading; the presenter only needs the calls to
+  // exist, so FakeAudio simulates loadedmetadata/durationchange/error synchronously.
+  globalThis.Audio = makeFakeAudio(audioBehavior, audioDuration) as unknown as typeof Audio
   URL.createObjectURL = vi.fn(() => 'blob:mock')
   URL.revokeObjectURL = vi.fn()
   return () => {
@@ -259,6 +276,65 @@ describe('useChroniclePresenter', () => {
       await waitFor(() => expect(result.current.isRecording).toBe(false))
       expect(client.POST).toHaveBeenCalledWith('/api/v1/pipeline/upload', expect.anything())
       await waitFor(() => expect(result.current.recordingLabel).toBe('2:18 audio'))
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock')
+    } finally {
+      restore()
+    }
+  })
+
+  it('recovers a Chromium Infinity duration via the seek workaround', async () => {
+    vi.mocked(client.GET).mockResolvedValue({ data: [], error: undefined, response: new Response() } as never)
+    vi.mocked(client.POST).mockResolvedValue({ data: { jobId: 'up-1', status: 'queued' }, error: undefined, response: new Response() } as never)
+    const restore = installRecorder({ audioBehavior: 'seek-resolves', audioDuration: 137.6 })
+
+    try {
+      const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
+      await waitFor(() => expect(result.current.flavours).toEqual([]))
+
+      await act(async () => { await result.current.startRecording() })
+      act(() => result.current.stopRecording())
+
+      await waitFor(() => expect(result.current.recordingLabel).toBe('2:18 audio'))
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock')
+    } finally {
+      restore()
+    }
+  })
+
+  it('leaves recordingSeconds null when duration is still not finite after the seek workaround', async () => {
+    vi.mocked(client.GET).mockResolvedValue({ data: [], error: undefined, response: new Response() } as never)
+    vi.mocked(client.POST).mockResolvedValue({ data: { jobId: 'up-1', status: 'queued' }, error: undefined, response: new Response() } as never)
+    const restore = installRecorder({ audioBehavior: 'seek-stays-infinite' })
+
+    try {
+      const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
+      await waitFor(() => expect(result.current.flavours).toEqual([]))
+
+      await act(async () => { await result.current.startRecording() })
+      act(() => result.current.stopRecording())
+
+      await waitFor(() => expect(result.current.isRecording).toBe(false))
+      expect(result.current.recordingLabel).toBeNull()
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock')
+    } finally {
+      restore()
+    }
+  })
+
+  it('revokes the object URL and leaves recordingSeconds null when the audio probe errors', async () => {
+    vi.mocked(client.GET).mockResolvedValue({ data: [], error: undefined, response: new Response() } as never)
+    vi.mocked(client.POST).mockResolvedValue({ data: { jobId: 'up-1', status: 'queued' }, error: undefined, response: new Response() } as never)
+    const restore = installRecorder({ audioBehavior: 'error' })
+
+    try {
+      const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
+      await waitFor(() => expect(result.current.flavours).toEqual([]))
+
+      await act(async () => { await result.current.startRecording() })
+      act(() => result.current.stopRecording())
+
+      await waitFor(() => expect(result.current.isRecording).toBe(false))
+      expect(result.current.recordingLabel).toBeNull()
       expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock')
     } finally {
       restore()
