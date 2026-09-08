@@ -94,12 +94,16 @@ describe('index.css motion + accent tokens', () => {
     expect(css).toMatch(/--ease:\s*cubic-bezier\(\.22,\s*\.8,\s*\.26,\s*1\)/)
   })
 
-  it('collapses every duration and the stagger delay inside the reduced-motion block', () => {
+  it('collapses every duration and the stagger unit inside the reduced-motion block', () => {
     const reduced = css.slice(css.indexOf('prefers-reduced-motion'))
     for (const t of ['--dur-ring', '--dur-scene', '--dur-copy', '--dur-stag', '--dur-bar']) {
       expect(reduced).toMatch(new RegExp(`${t}:\\s*120ms`))
     }
     expect(reduced).toMatch(/--stag-delay:\s*0ms/)
+  })
+
+  it('defines --stag-delay as a real time value', () => {
+    expect(css).toMatch(/--stag-delay:\s*80ms/)
   })
 
   it('derives --accent-line as a 34% color-mix for every flavour', () => {
@@ -127,7 +131,7 @@ In the `@layer base { :root { … } }` block, after the existing `--accent-*` li
     --accent-line: color-mix(in srgb, var(--accent) 34%, transparent);
 
     --ease: cubic-bezier(.22, .8, .26, 1);
-    --stag-delay: 1;
+    --stag-delay: 80ms;
     --dur-ring: 520ms;
     --dur-scene: 440ms;
     --dur-copy: 280ms;
@@ -167,7 +171,7 @@ In the existing `@media (prefers-reduced-motion: reduce) { … }` block, alongsi
   }
 ```
 
-Note: `--stag-delay` is a unitless multiplier normally (`1`) and `0ms` under reduced motion; consumers multiply it into a `calc()` (`calc(var(--index) * 80ms * var(--stag-delay))`), so a `0`-valued multiplier zeroes the delay. If `calc` with a unitless multiplier is awkward at a call site, that call site instead sets its own `transition-delay: calc(var(--i) * 80ms)` and the reduced block zeroes it via `transition-delay: 0ms !important` — Task 7 picks whichever is cleaner per element and this token just has to exist.
+Note: `--stag-delay` is the per-index stagger unit — `80ms` normally, `0ms` under reduced motion. Staggered elements set `--stagger-index: 0 | 1 | 2 | 3` and use `animation-delay: calc(var(--stagger-index) * var(--stag-delay))`. A `0ms` unit zeroes every stagger delay at once.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -891,9 +895,9 @@ describe('ChronicleView entrance', () => {
     const { container } = render(<ChronicleView {...props} />)
     const staggered = [...container.querySelectorAll('[data-stagger]')]
     expect(staggered.length).toBeGreaterThanOrEqual(3)
-    const delays = staggered.map((el) => Number((el as HTMLElement).dataset.stagger))
-    expect(delays).toEqual([...delays].sort((a, b) => a - b))
-    expect(delays[0]).toBe(0)
+    const idx = staggered.map((el) => Number((el as HTMLElement).dataset.stagger))
+    expect(idx).toEqual([...idx].sort((a, b) => a - b))
+    expect(idx[0]).toBe(0)
   })
 })
 ```
@@ -917,9 +921,24 @@ Expected: FAIL — no `data-stagger` attributes.
 }
 ```
 
-(Forward rises. "Back falls" — for `restart`/`retellAs` returning to landing — is acceptable to leave as the same rise for this pass; the handoff's back-transition is a nicety, note it as a known simplification in the commit message.)
+Also add the stagger keyframe to `index.css`:
 
-`ChronicleView.tsx`: give the narrator kicker+text container, the first paragraph, the payoff line, and the player bar each a `data-stagger={n}` (`0`, `80`, `160`, `240`) and a style `{ animation: 'stagger-in var(--dur-stag) var(--ease) both', animationDelay: 'calc(var(--stag-ms) * 1ms)' }` — simplest: inline `style={{ animationDelay: `${n}ms` }}` on each, plus a shared `stagger-in` keyframe (`from { opacity:0; transform: translateY(10px) }`). Under reduced motion the existing `@media (prefers-reduced-motion: reduce) { *, ::before, ::after { animation: none } }`-style rule must also zero these — add `animation-delay: 0 !important; animation: none !important` for `[data-stagger]` in that block if not already covered.
+```css
+@keyframes stagger-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@utility stagger-block {
+  animation: stagger-in var(--dur-stag) var(--ease) both;
+  animation-delay: calc(var(--stagger-index, 0) * var(--stag-delay));
+}
+```
+
+In the existing `@media (prefers-reduced-motion: reduce)` block add `[data-stagger] { animation-delay: 0ms; }` (belt-and-braces — Task 1's `--stag-delay: 0ms` already collapses the calc).
+
+(Forward rises. "Back falls" — for `restart`/`retellAs` returning to landing — is left as the same rise for this pass; note it as a known simplification in the commit message.)
+
+`ChronicleView.tsx`: give the narrator kicker+text container, the first paragraph, the payoff line, and the player bar each a `data-stagger` attribute holding its index (`"0"`, `"1"`, `"2"`, `"3"`), the `stagger-block` utility class, and `style={{ ['--stagger-index' as any]: n }}`. The test asserts only on the `data-stagger` index values.
 
 - [ ] **Step 4: Run to verify it passes**
 
