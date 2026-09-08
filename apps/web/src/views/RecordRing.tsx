@@ -25,42 +25,38 @@ export function RecordRing({
   onUploadInstead: () => void
   onRetryMic: () => void
 } & React.HTMLAttributes<HTMLDivElement>) {
-  if (slot === 'marker') {
-    return (
-      <div className="relative flex items-center justify-center" style={{ height: SIZE.marker, width: SIZE.marker }} {...rest}>
-        <div
-          className={`absolute inset-1/3 rounded-full bg-accent ${pipelineLive ? 'animate-recpulse' : ''}`}
-          style={{ boxShadow: '0 0 14px var(--accent)' }}
-        />
-      </div>
-    )
-  }
+  const isMarker = slot === 'marker'
+  const interactive = !isMarker && !micError
 
   const sizing =
-    slot === 'timer'
-      ? { height: SIZE.timer, width: SIZE.timer }
-      : undefined
+    slot === 'hero'
+      ? undefined
+      : { height: SIZE[slot], width: SIZE[slot] }
   const label = micError ? 'MIC BLOCKED' : slot === 'timer' ? elapsedLabel : isRecording ? 'Stop' : 'RECORD'
 
   return (
     <div className="flex flex-col items-center gap-5" {...rest}>
       <div
-        data-testid="btn-record"
-        role="button"
-        tabIndex={micError ? -1 : 0}
-        onClick={micError ? undefined : isRecording ? onStop : onStart}
-        onKeyDown={(e) => {
-          if (micError) return
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            ;(isRecording ? onStop : onStart)()
-          }
-        }}
+        data-testid={isMarker ? undefined : 'btn-record'}
+        role={isMarker ? undefined : 'button'}
+        tabIndex={isMarker ? undefined : micError ? -1 : 0}
+        onClick={interactive ? (isRecording ? onStop : onStart) : undefined}
+        onKeyDown={
+          isMarker
+            ? undefined
+            : (e) => {
+                if (micError) return
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  ;(isRecording ? onStop : onStart)()
+                }
+              }
+        }
         style={sizing}
         className={[
           'relative flex items-center justify-center',
           slot === 'hero' ? 'h-[clamp(160px,44vw,200px)] w-[clamp(160px,44vw,200px)]' : '',
-          micError ? 'cursor-default' : 'cursor-pointer',
+          !isMarker && !micError ? 'cursor-pointer' : 'cursor-default',
         ].join(' ')}
       >
         <div
@@ -70,25 +66,47 @@ export function RecordRing({
           }}
         />
         <div
-          className={
-            micError
-              ? 'absolute inset-0 rounded-full border border-dashed border-error-line'
-              : 'absolute inset-0 rounded-full border border-accent animate-ringout'
-          }
+          className={[
+            'absolute inset-0 rounded-full border',
+            micError ? 'border-dashed border-error-line' : 'border-accent',
+            !isMarker && !micError ? 'animate-ringout' : '',
+          ].join(' ')}
+          style={isMarker ? { opacity: 0 } : undefined}
         />
-        <div className={`absolute inset-[26px] rounded-full border ${micError ? 'border-error-line' : 'border-accent'}`} />
-        <div className={`absolute inset-12 rounded-full bg-abyss/55 border ${micError ? 'border-error' : 'border-accent'}`} />
-        <div className="relative flex flex-col items-center gap-2">
-          {micError ? (
-            <MicrophoneSlashIcon size={30} className="text-error" />
-          ) : (
-            <div className="h-[15px] w-[15px] rounded-full bg-accent animate-recpulse" />
+        <div
+          className={`absolute inset-[26px] rounded-full border ${micError ? 'border-error-line' : 'border-accent'}`}
+          style={isMarker ? { opacity: 0 } : undefined}
+        />
+        <div
+          className={[
+            'absolute rounded-full bg-abyss/55 border',
+            isMarker ? 'inset-0' : 'inset-12',
+            micError ? 'border-error' : 'border-accent',
+          ].join(' ')}
+          style={isMarker ? { boxShadow: '0 0 14px var(--accent)' } : undefined}
+        />
+        <div
+          className={
+            isMarker
+              ? `absolute inset-1/3 rounded-full bg-accent ${pipelineLive ? 'animate-recpulse' : ''}`
+              : 'relative flex flex-col items-center gap-2'
+          }
+          style={isMarker ? { boxShadow: '0 0 14px var(--accent)' } : undefined}
+        >
+          {!isMarker && (
+            <>
+              {micError ? (
+                <MicrophoneSlashIcon size={30} className="text-error" />
+              ) : (
+                <div className="h-[15px] w-[15px] rounded-full bg-accent animate-recpulse" />
+              )}
+              <span
+                className={`text-[12.5px] font-medium uppercase tracking-[.08em] ${micError ? 'text-error-fg' : 'text-fg'}`}
+              >
+                {label}
+              </span>
+            </>
           )}
-          <span
-            className={`text-[12.5px] font-medium uppercase tracking-[.08em] ${micError ? 'text-error-fg' : 'text-fg'}`}
-          >
-            {label}
-          </span>
         </div>
       </div>
 

@@ -167,7 +167,7 @@ export function LandingView({
           <div className="flex justify-center">
             {micError ? (
               <RecordRing
-                slot={isRecording ? 'timer' : 'hero'}
+                slot="hero"
                 micError
                 isRecording={isRecording}
                 onStart={startRecording}
@@ -187,7 +187,7 @@ export function LandingView({
               />
             ) : (
               <RecordRing
-                slot={isRecording ? 'timer' : 'hero'}
+                slot="hero"
                 micError={false}
                 isRecording={isRecording}
                 onStart={startRecording}
