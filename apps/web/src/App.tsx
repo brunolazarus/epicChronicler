@@ -44,6 +44,8 @@ function Flow() {
   const sceneStage = p.stage === "review" ? "confirm" : p.stage;
   const ringSlot = p.stage === "landing" ? (p.isRecording ? "timer" : "hero") : "marker";
   const showUploadNotice = p.stage === "landing" && p.uploadNotice != null;
+  // both error cards need more room than the ring box, and neither may animate into place
+  const ringShowsError = showUploadNotice || (p.stage === "landing" && p.micError);
   const pipelineVisible = p.stage !== "landing";
   const pipelineCollapsed = p.stage === "result";
 
@@ -87,6 +89,7 @@ function Flow() {
       data-flavour={p.selectedFlavour ?? "medieval"}
       data-stage={p.stage}
       data-recording={p.isRecording ? "true" : undefined}
+      data-ring-error={ringShowsError ? "true" : undefined}
       className="min-h-screen bg-surface text-fg"
     >
       <input
@@ -118,10 +121,11 @@ function Flow() {
             style={{
               left: "var(--ring-left)",
               top: "var(--ring-top)",
-              width: showUploadNotice ? "min(420px, calc(100vw - 48px))" : "var(--ring-size)",
-              height: showUploadNotice ? "auto" : "var(--ring-size)",
-              transition:
-                "left var(--dur-ring) var(--ease), top var(--dur-ring) var(--ease), width var(--dur-ring) var(--ease), height var(--dur-ring) var(--ease)",
+              width: ringShowsError ? "min(420px, calc(100vw - 48px))" : "var(--ring-size)",
+              height: ringShowsError ? "auto" : "var(--ring-size)",
+              transition: ringShowsError
+                ? "none"
+                : "left var(--dur-ring) var(--ease), top var(--dur-ring) var(--ease), width var(--dur-ring) var(--ease), height var(--dur-ring) var(--ease)",
             }}
           >
             {showUploadNotice && p.uploadNotice ? (
@@ -152,7 +156,11 @@ function Flow() {
 
         {pipelineVisible && (
           <div
-            className={`mx-auto max-w-[760px] px-6 md:px-12 ${pipelineCollapsed ? "" : "pt-10"}`}
+            className="mx-auto max-w-[760px] px-6 md:px-12"
+            style={{
+              paddingTop: pipelineCollapsed ? 0 : 40,
+              transition: "padding-top var(--dur-scene) var(--ease)",
+            }}
           >
             <PipelineStrip
               stages={p.stages}

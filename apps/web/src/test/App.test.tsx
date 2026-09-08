@@ -29,7 +29,8 @@ describe('App', () => {
     expect(screen.getByText(/Every night out is a legend waiting for a narrator\./)).toBeInTheDocument()
     expect(screen.getByTestId('carousel-chip-medieval')).toBeInTheDocument()
 
-    const ringOnLanding = screen.getByTestId('ring-wrapper')
+    // the positioned box inside the wrapper is the element that actually morphs
+    const ringBoxOnLanding = screen.getByTestId('ring-wrapper').firstElementChild
     const bandOnLanding = screen.getByTestId('scene-band')
 
     await userEvent.click(screen.getByTestId('carousel-chip-medieval'))
@@ -37,8 +38,9 @@ describe('App', () => {
     await userEvent.upload(screen.getByTestId('audio-file'), file)
 
     await waitFor(() => expect(screen.getByTestId('transcript')).toHaveValue('a wild tale'))
-    expect(screen.getByTestId('ring-wrapper')).toBe(ringOnLanding)
+    expect(screen.getByTestId('ring-wrapper').firstElementChild).toBe(ringBoxOnLanding)
     expect(screen.getByTestId('scene-band')).toBe(bandOnLanding)
+    const stripOnReview = screen.getByTestId('pipeline-strip')
 
     await userEvent.click(screen.getByTestId('btn-generate'))
 
@@ -47,8 +49,8 @@ describe('App', () => {
     expect(document.querySelector('[data-flavour="medieval"]')).not.toBeNull()
     expect(document.querySelector('[data-stage="result"]')).not.toBeNull()
     // the shell's three elements survived every stage change without remounting
-    expect(screen.getByTestId('ring-wrapper')).toBe(ringOnLanding)
+    expect(screen.getByTestId('ring-wrapper').firstElementChild).toBe(ringBoxOnLanding)
     expect(screen.getByTestId('scene-band')).toBe(bandOnLanding)
-    expect(screen.getByTestId('pipeline-strip')).toBeInTheDocument()
+    expect(screen.getByTestId('pipeline-strip')).toBe(stripOnReview)
   })
 })

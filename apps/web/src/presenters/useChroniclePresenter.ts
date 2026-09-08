@@ -148,8 +148,8 @@ export function useChroniclePresenter() {
     generatePoll.error instanceof JobExpiredError ? 'expired' : generateFailed ? 'failed' : null
 
   // Only an expired job leaves Processing: there is nothing left to render there.
-  // A failure stays on Processing so ProcessingView's per-stage failure rows and
-  // its retry button remain reachable.
+  // A failure stays on Processing so the shell's PipelineStrip keeps rendering its
+  // per-stage failure row and retry button.
   if (jobOutcome === 'expired' && stage !== 'result') setStage('result')
   if (generatePoll.data?.status === 'completed' && stage !== 'result') setStage('result')
 

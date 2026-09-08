@@ -70,11 +70,24 @@
   }
 
   /* Record-ring travel target, per pipeline stage. Offsets are measured from the ring wrapper,
-     which starts at the top of the scene band. `--ring-left` positions the ring's left edge, so
-     anything that wants the ring centred subtracts half of --ring-size.
-     Landing: centre of the hero grid's right column — .85fr of (band inner width - 40px gap),
-     which is why the fraction is 0.2875 (= .85 / 2 / 2 + gap share). Marker stages: card left
-     edge (max-w-760 / max-w-1080, min 24px page padding) + 20px card-header padding + 40px. */
+     which starts at the top of the scene band. `--ring-left` is the ring's LEFT EDGE, so anything
+     centred subtracts var(--ring-size)/2.
+
+     Landing — centre of the hero grid's right column (HeroCopyGrid: max-w-[1280px], md:px-12,
+     grid-cols-[1.15fr_.85fr], gap-10). Let W = min(100vw,1280px) - 96 (inner width) and
+     A = W - 40 = min(100vw,1280px) - 136 (minus the gap). Right column centre from the container's
+     LEFT edge is A*(1.15/2) + 40 + A*(.85/2)/2 = A*.7875 + 40; the container centre is A/2 + 20;
+     so from the centre it is A*(.7875 - .5) + 20 = A*0.2875 + 20.
+     --ring-top centres the ring in the landing band: 420px is SceneBand's BAND_HEIGHT.landing —
+     these two must be changed together.
+
+     Marker stages — the card's own left padding edge. Wrapper left = max(0, 50% - maxW/2), plus
+     48px (md:px-12) for the card's left edge, plus the card header's left padding:
+       review/processing (max-w-760, header px-[22px]):  48 + 22 = 70
+       result           (max-w-1080, panel p-6 = 24px):  48 + 24 = 72
+     --ring-top is measured, not derived: band(260) + strip padding(40) + strip height(117) + 10
+     header offset = 427; result is band(128) + ChronicleView my-[60px] + 10 = 198. Both were read
+     off the built page in a browser; re-measure if the strip's row count or spacing changes. */
   [data-stage="landing"] {
     --ring-size: 200px;
     --ring-left: calc(50% + (min(100vw, 1280px) - 136px) * 0.2875 + 20px - var(--ring-size) / 2);
@@ -104,8 +117,13 @@
     [data-stage="review"], [data-stage="processing"] { --ring-left: 46px; }
     [data-stage="result"] { --ring-left: 48px; }
 
-    /* beats SceneBand's inline height: the hero copy plus the ring do not fit in 420px on a phone */
+    /* beats SceneBand's inline height: the hero copy plus the ring do not fit in 420px on a phone,
+       and an error card in the ring slot needs another 100px or it lands on the carousel */
     [data-stage="landing"] [data-testid="scene-band"] { height: 600px !important; }
+    [data-stage="landing"][data-ring-error="true"] [data-testid="scene-band"] {
+      height: 700px !important;
+      transition: none !important; /* errors get no motion — the band must not ease open */
+    }
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

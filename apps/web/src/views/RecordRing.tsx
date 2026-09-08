@@ -47,7 +47,8 @@ export function RecordRing({
               }
         }
         className={[
-          'relative flex aspect-square w-full shrink-0 items-center justify-center',
+          // max-w caps the ring when the shell widens the slot to fit an error card beside it
+          'relative flex aspect-square w-full max-w-(--ring-size) shrink-0 items-center justify-center',
           !isMarker && !micError ? 'cursor-pointer' : 'cursor-default',
         ].join(' ')}
       >
