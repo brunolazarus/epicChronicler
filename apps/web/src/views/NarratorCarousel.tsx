@@ -66,7 +66,7 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
                 '[--card-w:160px] [--card-step:178px]',
                 'sm:[--card-w:176px] sm:[--card-step:194px]',
                 'md:[--card-w:258px] md:[--card-step:276px]',
-                'transition-transform duration-[450ms] ease-[cubic-bezier(.22,.8,.26,1)] motion-reduce:transition-none',
+                'transition-transform duration-[var(--dur-card)] ease-[cubic-bezier(.22,.8,.26,1)] motion-reduce:transition-none',
               ].join(' ')}
               style={{
                 transform: `translateX(calc(50% - var(--card-w) / 2 - ${activeIndex} * var(--card-step)))`,
@@ -85,7 +85,7 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectFlavour(f.key) } }}
                     className={[
                       'w-40 sm:w-44 md:w-[258px] shrink-0 cursor-pointer rounded-xl p-5',
-                      'transition-all duration-[450ms] ease-[cubic-bezier(.22,.8,.26,1)] motion-reduce:transition-none',
+                      'transition-all duration-[var(--dur-card)] ease-[cubic-bezier(.22,.8,.26,1)] motion-reduce:transition-none',
                       selected
                         ? 'scale-100 opacity-100 border border-accent bg-accent-ghost shadow-[0_0_44px_var(--accent-soft)]'
                         : 'scale-90 opacity-50 border border-line-muted bg-transparent',
@@ -109,7 +109,7 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
           {flavours.map((f, i) => (
             <div
               key={f.key}
-              className={`h-1.5 rounded-full transition-all duration-[350ms] motion-reduce:transition-none ${i === activeIndex ? 'w-[22px] bg-accent' : 'w-1.5 bg-line-muted'}`}
+              className={`h-1.5 rounded-full transition-all duration-[var(--dur-dots)] motion-reduce:transition-none ${i === activeIndex ? 'w-[22px] bg-accent' : 'w-1.5 bg-line-muted'}`}
             />
           ))}
         </div>

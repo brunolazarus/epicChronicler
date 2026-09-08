@@ -56,6 +56,8 @@
     --dur-copy: 280ms;
     --dur-stag: 340ms;
     --dur-bar: 700ms;
+    --dur-card: 450ms;
+    --dur-dots: 350ms;
   }
 
   [data-flavour="medieval"] { --accent: oklch(0.734 0.125 289); }
@@ -150,6 +152,24 @@
 @utility animate-recpulse { animation: recpulse 1.6s ease-in-out infinite; }
 @utility animate-ringout  { animation: ringout 2.8s ease-out infinite; }
 
+/* per-stage card entrance — App.tsx keys the card region on the stage so React remounts it,
+   which is what re-triggers this animation */
+@utility motion-card { animation: card-in var(--dur-copy) var(--ease); }
+
+@utility stagger-block {
+  animation: stagger-in var(--dur-stag) var(--ease) both;
+  animation-delay: calc(var(--stagger-index, 0) * var(--stag-delay));
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes stagger-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes recpulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.35; transform: scale(0.82); }
@@ -166,7 +186,10 @@
     --dur-copy: 120ms;
     --dur-stag: 120ms;
     --dur-bar: 120ms;
+    --dur-card: 120ms;
+    --dur-dots: 120ms;
     --stag-delay: 0ms;
   }
   .animate-recpulse, .animate-ringout { animation: none !important; }
+  [data-stagger] { animation-delay: 0ms; }
 }

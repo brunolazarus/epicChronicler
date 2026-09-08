@@ -172,7 +172,7 @@ function Flow() {
           </div>
         )}
 
-        <div className="relative z-10">{card}</div>
+        <div key={p.stage} className="motion-card relative z-10">{card}</div>
       </div>
     </div>
   );
