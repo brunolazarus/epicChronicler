@@ -1,15 +1,49 @@
 import { Button } from '@/components/ui/button.js'
+import { MicrophoneSlashIcon } from '@/lib/icons.js'
 
-export function RecordRing({ micError, isRecording, onStart, onStop, onUploadInstead, onRetryMic }: {
+const SIZE = { hero: 200, timer: 228, marker: 34 } as const
+
+export function RecordRing({
+  slot,
+  micError,
+  isRecording,
+  elapsedLabel,
+  pipelineLive,
+  onStart,
+  onStop,
+  onUploadInstead,
+  onRetryMic,
+  ...rest
+}: {
+  slot: 'hero' | 'timer' | 'marker'
   micError: boolean
   isRecording: boolean
+  elapsedLabel?: string
+  pipelineLive?: boolean
   onStart: () => void
   onStop: () => void
   onUploadInstead: () => void
   onRetryMic: () => void
-}) {
+} & React.HTMLAttributes<HTMLDivElement>) {
+  if (slot === 'marker') {
+    return (
+      <div className="relative flex items-center justify-center" style={{ height: SIZE.marker, width: SIZE.marker }} {...rest}>
+        <div
+          className={`absolute inset-1/3 rounded-full bg-accent ${pipelineLive ? 'animate-recpulse' : ''}`}
+          style={{ boxShadow: '0 0 14px var(--accent)' }}
+        />
+      </div>
+    )
+  }
+
+  const sizing =
+    slot === 'timer'
+      ? { height: SIZE.timer, width: SIZE.timer }
+      : undefined
+  const label = micError ? 'MIC BLOCKED' : slot === 'timer' ? elapsedLabel : isRecording ? 'Stop' : 'RECORD'
+
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div className="flex flex-col items-center gap-5" {...rest}>
       <div
         data-testid="btn-record"
         role="button"
@@ -22,9 +56,10 @@ export function RecordRing({ micError, isRecording, onStart, onStop, onUploadIns
             ;(isRecording ? onStop : onStart)()
           }
         }}
+        style={sizing}
         className={[
           'relative flex items-center justify-center',
-          'h-[clamp(160px,44vw,200px)] w-[clamp(160px,44vw,200px)]',
+          slot === 'hero' ? 'h-[clamp(160px,44vw,200px)] w-[clamp(160px,44vw,200px)]' : '',
           micError ? 'cursor-default' : 'cursor-pointer',
         ].join(' ')}
       >
@@ -45,14 +80,14 @@ export function RecordRing({ micError, isRecording, onStart, onStop, onUploadIns
         <div className={`absolute inset-12 rounded-full bg-abyss/55 border ${micError ? 'border-error' : 'border-accent'}`} />
         <div className="relative flex flex-col items-center gap-2">
           {micError ? (
-            <span className="text-[30px] text-error">⦸</span>
+            <MicrophoneSlashIcon size={30} className="text-error" />
           ) : (
             <div className="h-[15px] w-[15px] rounded-full bg-accent animate-recpulse" />
           )}
           <span
             className={`text-[12.5px] font-medium uppercase tracking-[.08em] ${micError ? 'text-error-fg' : 'text-fg'}`}
           >
-            {micError ? 'Mic blocked' : isRecording ? 'Stop' : 'Record'}
+            {label}
           </span>
         </div>
       </div>
@@ -64,7 +99,7 @@ export function RecordRing({ micError, isRecording, onStart, onStop, onUploadIns
             Allow microphone access for this site in your browser settings, then try again.
           </p>
           <div className="flex gap-2">
-            <Button variant="error" size="sm" onClick={onRetryMic}>
+            <Button variant="error" size="sm" data-error-control onClick={onRetryMic}>
               Try again
             </Button>
             <Button variant="ghost" size="sm" onClick={onUploadInstead}>Upload a file</Button>
