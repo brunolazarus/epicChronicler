@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Card } from '@/components/ui/card.js'
 import { getFlavourTheme } from '../theme.js'
-import { buildScene } from '../scenes.js'
+import { SceneBand } from './SceneBand.js'
 import { RecordRing } from './RecordRing.js'
 import { NarratorCarousel } from './NarratorCarousel.js'
 import { NoticeCard } from './NoticeCard.js'
@@ -52,7 +52,6 @@ export function LandingView({
   uploadError: string | null
 }) {
   const theme = getFlavourTheme(selectedFlavour ?? 'medieval')
-  const scene = buildScene(theme.key)
 
   const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -143,32 +142,7 @@ export function LandingView({
         </nav>
       </header>
 
-      <div className="relative mx-auto max-w-[1280px] overflow-hidden md:h-[420px]">
-        <div className="hidden md:block">
-          <div className="pointer-events-none absolute left-1/2 top-[30%] h-[300px] w-[900px] origin-[50%_30%] -translate-x-1/2 -translate-y-[30%] scale-[1.15] lg:scale-[1.4]">
-            {scene.map((s, i) => (
-              <div
-                key={i}
-                className="absolute"
-                style={{
-                  left: s.l,
-                  top: s.t,
-                  width: s.w,
-                  height: s.h,
-                  background: s.bg,
-                  borderRadius: s.r,
-                  boxShadow: s.sh,
-                  transform: s.tf,
-                  opacity: s.o,
-                  filter: s.fl,
-                }}
-              />
-            ))}
-          </div>
-          <div className="absolute inset-0 [background:linear-gradient(90deg,rgba(10,11,16,.88)_0%,rgba(10,11,16,.6)_46%,transparent_72%)]" />
-          <div className="absolute inset-0 [background:linear-gradient(180deg,transparent_60%,rgba(22,24,38,.85)_100%)]" />
-        </div>
-
+      <SceneBand flavourKey={theme.key} stage="landing">
         <div className="relative grid grid-cols-1 items-center gap-10 px-6 py-14 md:h-full md:grid-cols-[1.15fr_.85fr] md:px-12 md:py-0">
           <div>
             <div className="mb-4 font-mono text-[11px] uppercase tracking-[.16em] text-accent">No login · nothing kept</div>
@@ -222,11 +196,7 @@ export function LandingView({
             )}
           </div>
         </div>
-
-        <div className="pointer-events-none absolute bottom-3.5 right-6 hidden text-right font-mono text-[10px] tracking-[.08em] text-fg/50 md:right-12 md:block">
-          {theme.sceneLabel}
-        </div>
-      </div>
+      </SceneBand>
 
       <div className="mx-auto max-w-[1280px] px-6 md:px-12">
         <NarratorCarousel flavours={flavours} selectedFlavour={selectedFlavour} selectFlavour={selectFlavour} />
