@@ -27,9 +27,7 @@ export function useChroniclePresenter() {
 
   const [isRecording, setIsRecording] = useState(false)
   const [elapsed, setElapsed] = useState(0)
-  // Task 10 destructures the setter and captures the duration when a recording stops; until then
-  // recordingLabel is always null and the confirm card omits it (the upload path never has one).
-  const [recordingSeconds] = useState<number | null>(null)
+  const [recordingSeconds, setRecordingSeconds] = useState<number | null>(null)
   const [uploadNoticeDismissed, setUploadNoticeDismissed] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -97,6 +95,14 @@ export function useChroniclePresenter() {
         const mimeType = recorder.mimeType || 'audio/webm'
         const ext = mimeType.split('/')[1].split(';')[0]
         const blob = new Blob(chunksRef.current, { type: mimeType })
+
+        const url = URL.createObjectURL(blob)
+        const probe = new Audio(url)
+        probe.addEventListener('loadedmetadata', () => {
+          setRecordingSeconds(Math.round(probe.duration))
+          URL.revokeObjectURL(url)
+        })
+
         tryUploadAudio(new File([blob], `recording.${ext}`, { type: mimeType }))
         setIsRecording(false)
       }
@@ -174,6 +180,7 @@ export function useChroniclePresenter() {
     setUploadValidationError(null)
     setUploadNoticeDismissed(false)
     setMicError(false)
+    setRecordingSeconds(null)
   }
 
   function restart() {
@@ -250,5 +257,6 @@ export function useChroniclePresenter() {
     jobOutcome,
     restart,
     retellAs,
+    jobId: generateJobId ?? uploadJobId ?? null,
   }
 }

@@ -31,9 +31,22 @@ class FakeMediaRecorder {
   }
 }
 
-function installRecorder({ denied = false } = {}) {
+class FakeAudio {
+  duration = 137.6
+  listeners: Record<string, (() => void)[]> = {}
+  constructor(public src: string) {}
+  addEventListener(event: string, cb: () => void) {
+    (this.listeners[event] ??= []).push(cb)
+    if (event === 'loadedmetadata') cb()
+  }
+}
+
+function installRecorder({ denied = false, audioDuration }: { denied?: boolean; audioDuration?: number } = {}) {
   const originalMediaDevices = navigator.mediaDevices
   const originalRecorder = globalThis.MediaRecorder
+  const originalAudio = globalThis.Audio
+  const originalCreateObjectURL = URL.createObjectURL
+  const originalRevokeObjectURL = URL.revokeObjectURL
   Object.defineProperty(navigator, 'mediaDevices', {
     value: {
       getUserMedia: denied
@@ -43,9 +56,22 @@ function installRecorder({ denied = false } = {}) {
     configurable: true,
   })
   globalThis.MediaRecorder = FakeMediaRecorder as unknown as typeof MediaRecorder
+  // jsdom does not implement blob URLs or media loading; the presenter only needs the calls to exist,
+  // so FakeAudio fires loadedmetadata synchronously with a stubbed duration.
+  globalThis.Audio = class extends FakeAudio {
+    constructor(src: string) {
+      super(src)
+      if (audioDuration != null) this.duration = audioDuration
+    }
+  } as unknown as typeof Audio
+  URL.createObjectURL = vi.fn(() => 'blob:mock')
+  URL.revokeObjectURL = vi.fn()
   return () => {
     Object.defineProperty(navigator, 'mediaDevices', { value: originalMediaDevices, configurable: true })
     globalThis.MediaRecorder = originalRecorder
+    globalThis.Audio = originalAudio
+    URL.createObjectURL = originalCreateObjectURL
+    URL.revokeObjectURL = originalRevokeObjectURL
   }
 }
 
@@ -214,10 +240,10 @@ describe('useChroniclePresenter', () => {
     expect(result.current.stage).toBe('result')
   })
 
-  it('starts recording, and stopping uploads the captured audio', async () => {
+  it('starts recording, and stopping uploads the captured audio and captures its duration', async () => {
     vi.mocked(client.GET).mockResolvedValue({ data: [], error: undefined, response: new Response() } as never)
     vi.mocked(client.POST).mockResolvedValue({ data: { jobId: 'up-1', status: 'queued' }, error: undefined, response: new Response() } as never)
-    const restore = installRecorder()
+    const restore = installRecorder({ audioDuration: 137.6 })
 
     try {
       const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
@@ -232,6 +258,8 @@ describe('useChroniclePresenter', () => {
 
       await waitFor(() => expect(result.current.isRecording).toBe(false))
       expect(client.POST).toHaveBeenCalledWith('/api/v1/pipeline/upload', expect.anything())
+      await waitFor(() => expect(result.current.recordingLabel).toBe('2:18 audio'))
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock')
     } finally {
       restore()
     }
@@ -253,6 +281,16 @@ describe('useChroniclePresenter', () => {
     } finally {
       restore()
     }
+  })
+
+  it('exposes the generate job id once generation is queued', async () => {
+    vi.mocked(client.GET).mockResolvedValue({ data: [], error: undefined, response: new Response() } as never)
+    vi.mocked(client.POST).mockResolvedValue({ data: { jobId: 'gen-42', status: 'queued' }, error: undefined, response: new Response() } as never)
+    const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
+    await waitFor(() => expect(result.current.flavours).toEqual([]))
+    act(() => result.current.setTranscript('a tale'))
+    act(() => result.current.confirmTranscript())
+    await waitFor(() => expect(result.current.jobId).toBe('gen-42'))
   })
 
   it('builds an upload notice, clears it on "Record instead", and does not swallow the next error', async () => {

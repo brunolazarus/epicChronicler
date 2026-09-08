@@ -82,6 +82,7 @@ function Flow() {
         retellAs={p.retellAs}
         jobOutcome={p.jobOutcome}
         restart={p.restart}
+        jobId={p.jobId ?? "—"}
       />
     );
   }
