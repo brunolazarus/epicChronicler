@@ -109,6 +109,12 @@ export function useChroniclePresenter() {
   }, [isRecording])
 
   async function startRecording() {
+    // A new recording supersedes the last failed attempt. Only resetting the dismissal flag would
+    // re-raise that attempt's notice into the ring slot, unmounting the live ring — and its Stop
+    // control — while MediaRecorder is already running.
+    setUploadJobId(null)
+    setUploadValidationError(null)
+    uploadMutation.reset()
     setUploadNoticeDismissed(false)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })

@@ -396,4 +396,39 @@ describe('useChroniclePresenter', () => {
     act(() => result.current.tryUploadAudio(new File(['x'], 'voice.aiff', { type: 'audio/aiff' })))
     expect(result.current.uploadNotice).toMatchObject({ title: "That format isn't supported" })
   })
+
+  it('does not raise a dismissed transcription failure again when a new recording starts', async () => {
+    vi.mocked(client.GET).mockImplementation(async (path: string) => {
+      if (path === '/api/v1/pipeline/flavours') {
+        return { data: [], error: undefined, response: new Response() } as never
+      }
+      return { data: { status: 'failed', progress: 0, result: null, error: 'ERR_TRANSCRIPTION' }, error: undefined, response: new Response() } as never
+    })
+    vi.mocked(client.POST).mockResolvedValue({ data: { jobId: 'up-1', status: 'queued' }, error: undefined, response: new Response() } as never)
+    const restore = installRecorder()
+
+    try {
+      const { result } = renderHook(() => useChroniclePresenter(), { wrapper })
+      await waitFor(() => expect(result.current.flavours).toEqual([]))
+
+      act(() => result.current.tryUploadAudio(new File(['x'], 'a.webm', { type: 'audio/webm' })))
+      await waitFor(() =>
+        expect(result.current.uploadNotice).toMatchObject({ title: "That recording couldn't be transcribed" }),
+      )
+
+      act(() => result.current.clearUploadError())
+      expect(result.current.uploadNotice).toBeNull()
+
+      // the notice would otherwise re-render over the ring the moment recording starts
+      await act(async () => { await result.current.startRecording() })
+      expect(result.current.isRecording).toBe(true)
+      expect(result.current.uploadNotice).toBeNull()
+
+      await act(async () => { await new Promise((r) => setTimeout(r, 50)) })
+      expect(result.current.isRecording).toBe(true)
+      expect(result.current.uploadNotice).toBeNull()
+    } finally {
+      restore()
+    }
+  })
 })
