@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { StepBoundary } from "./views/StepBoundary.js";
 import { SceneBand } from "./views/SceneBand.js";
 import { RecordRing } from "./views/RecordRing.js";
@@ -31,14 +31,58 @@ function TopBar() {
   );
 }
 
+// Layout offset of `node` inside `ancestor`. Deliberately not getBoundingClientRect: the card
+// mounts with a `card-in` translateY, and a rect read mid-animation would bake that 20px in.
+function offsetWithin(node: HTMLElement, ancestor: HTMLElement) {
+  let top = 0;
+  let left = 0;
+  for (let el: HTMLElement | null = node; el && el !== ancestor; el = el.offsetParent as HTMLElement | null) {
+    top += el.offsetTop;
+    left += el.offsetLeft;
+  }
+  return { top, left };
+}
+
 function Flow() {
   const p = useChroniclePresenter();
   const theme = getFlavourTheme(p.selectedFlavour ?? "medieval");
   const scrollTop = useRef<HTMLDivElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const ringWrapperRef = useRef<HTMLDivElement>(null);
+  const markerRef = useRef<HTMLDivElement>(null);
+  const [markerPos, setMarkerPos] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     // optional call: jsdom does not implement scrollIntoView
     scrollTop.current?.scrollIntoView?.({ block: "start" });
+  }, [p.stage]);
+
+  // Past landing the ring parks in each card header's 34px slot. Measuring that slot rather than
+  // hardcoding an offset is what keeps the marker in the header when the card grows underneath it
+  // — a failed pipeline stage adds a detail box that pushes everything below it down.
+  useLayoutEffect(() => {
+    if (p.stage === "landing") {
+      setMarkerPos(null);
+      return;
+    }
+    const shell = shellRef.current;
+    if (!shell) return;
+
+    const measure = () => {
+      const slot = markerRef.current;
+      const wrapper = ringWrapperRef.current;
+      // the expired/failed card has no slot: hold the last position instead of snapping back
+      if (!slot || !wrapper) return;
+      const a = offsetWithin(slot, shell);
+      const next = { top: a.top - wrapper.offsetTop, left: a.left - wrapper.offsetLeft };
+      setMarkerPos((prev) => (prev && prev.top === next.top && prev.left === next.left ? prev : next));
+    };
+
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(shell);
+    return () => observer.disconnect();
   }, [p.stage]);
 
   const sceneStage = p.stage === "review" ? "confirm" : p.stage;
@@ -67,10 +111,11 @@ function Flow() {
         selectedFlavour={p.selectedFlavour ?? "medieval"}
         recordingLabel={p.recordingLabel}
         wordCount={p.transcriptWordCount}
+        markerRef={markerRef}
       />
     );
   } else if (p.stage === "processing") {
-    card = <ProcessingView stages={p.stages} flavourKey={theme.key} voice={theme.voice} />;
+    card = <ProcessingView stages={p.stages} flavourKey={theme.key} voice={theme.voice} markerRef={markerRef} />;
   } else {
     card = (
       <ChronicleView
@@ -83,6 +128,7 @@ function Flow() {
         jobOutcome={p.jobOutcome}
         restart={p.restart}
         jobId={p.jobId ?? "—"}
+        markerRef={markerRef}
       />
     );
   }
@@ -95,6 +141,11 @@ function Flow() {
       data-recording={p.isRecording ? "true" : undefined}
       data-ring-error={ringShowsError ? "true" : undefined}
       className="min-h-screen bg-surface text-fg"
+      style={
+        markerPos
+          ? ({ "--ring-top": `${markerPos.top}px`, "--ring-left": `${markerPos.left}px` } as CSSProperties)
+          : undefined
+      }
     >
       <input
         ref={p.fileInputRef}
@@ -112,14 +163,14 @@ function Flow() {
         <TopBar />
       </div>
 
-      <div className="relative">
+      <div ref={shellRef} className="relative">
         <div className="bg-abyss">
           <SceneBand flavourKey={theme.key} stage={sceneStage}>
             {p.stage === "landing" && <HeroCopyGrid onUploadClick={p.openFilePicker} />}
           </SceneBand>
         </div>
 
-        <div data-testid="ring-wrapper" className="pointer-events-none absolute inset-x-0 top-0 z-20">
+        <div ref={ringWrapperRef} data-testid="ring-wrapper" className="pointer-events-none absolute inset-x-0 top-0 z-20">
           <div
             className="pointer-events-auto absolute"
             style={{

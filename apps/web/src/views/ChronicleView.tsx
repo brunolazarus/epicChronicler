@@ -30,7 +30,7 @@ function countWords(text: string | null) {
   return text ? text.trim().split(/\s+/).filter(Boolean).length : 0
 }
 
-export function ChronicleView({ chronicleText, audioKey, transcript, flavours, selectedFlavour, retellAs, jobOutcome, restart, jobId = '—' }: {
+export function ChronicleView({ chronicleText, audioKey, transcript, flavours, selectedFlavour, retellAs, jobOutcome, restart, jobId = '—', markerRef }: {
   chronicleText: string | null
   audioKey: string | null
   transcript: string
@@ -40,6 +40,7 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
   jobOutcome: 'expired' | 'failed' | null
   restart: () => void
   jobId?: string
+  markerRef?: React.Ref<HTMLDivElement>
 }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -95,12 +96,11 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
   return (
     <div className="mx-auto my-[60px] max-w-[1080px] px-6 md:px-12">
       <Card className="overflow-hidden bg-surface shadow-[0_16px_40px_rgba(0,0,0,.45)]">
-        {/* py-2.5 is load-bearing: --ring-top in index.css lands the travelling marker on the 34px
-            slot below, and was measured against a 10px header padding. */}
         <div className="flex items-center gap-6 border-b border-line bg-panel-raised px-6 py-2.5 font-mono text-[11.5px]">
-          {/* self-start, not centred: the marker must stay 10px below the card edge even if the
-              strip grows taller than the slot on a narrow viewport */}
-          <div className="h-[34px] w-[34px] flex-none self-start" aria-hidden />
+          {/* the travelling record ring parks here — App.tsx measures this slot. self-start, not
+              centred: the marker must stay at the top of the header even if the tab strip wraps
+              taller than the slot on a narrow viewport */}
+          <div ref={markerRef} className="h-[34px] w-[34px] flex-none self-start" aria-hidden />
           {/* -mb-2.5 pb-2.5 pushes the underline past the strip's padding onto the bottom border */}
           <div className="-mb-2.5 flex items-center self-stretch whitespace-nowrap pb-2.5 text-fg shadow-[inset_0_-2px_0_0_var(--accent)]">
             transcript + chronicle
