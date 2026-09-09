@@ -61,13 +61,13 @@ export function RecordRing({
         <div
           className={[
             'absolute inset-0 rounded-full border',
-            micError ? 'border-dashed border-error-line' : 'border-accent',
+            micError ? 'border-dashed border-error-line' : 'border-accent-line',
             !isMarker && !micError ? 'animate-ringout' : '',
           ].join(' ')}
           style={isMarker ? { opacity: 0 } : undefined}
         />
         <div
-          className={`absolute inset-[26px] rounded-full border ${micError ? 'border-error-line' : 'border-accent'}`}
+          className={`absolute inset-[26px] rounded-full border ${micError ? 'border-error-line' : 'border-accent-line'}`}
           style={isMarker ? { opacity: 0 } : undefined}
         />
         <div

@@ -99,7 +99,7 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
                       'w-40 sm:w-44 md:w-[258px] shrink-0 cursor-pointer rounded-xl p-5',
                       'transition-all duration-[var(--dur-card)] ease-[cubic-bezier(.22,.8,.26,1)] motion-reduce:transition-none',
                       selected
-                        ? 'scale-100 opacity-100 border border-accent bg-accent-ghost shadow-[0_0_44px_var(--accent-soft)]'
+                        ? 'scale-100 opacity-100 border border-accent-line bg-accent-ghost shadow-[0_0_44px_var(--accent-soft)]'
                         : 'scale-90 opacity-50 border border-line-muted bg-transparent',
                     ].join(' ')}
                   >

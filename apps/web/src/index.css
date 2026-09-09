@@ -27,6 +27,7 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-ghost: var(--accent-ghost);
+  --color-accent-line: var(--accent-line);
 
   --color-error: var(--error);
   --color-error-fg: var(--error-text);
