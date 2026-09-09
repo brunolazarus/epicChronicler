@@ -5,6 +5,9 @@ test('full journey: flavour, upload, transcript, generate, playback', async ({ p
 
   await page.goto('/')
 
+  // the record ring is ONE element across the flow — capture it on landing, prove identity later
+  const ringHandleLanding = await page.getByTestId('ring-wrapper').elementHandle()
+
   await page.getByTestId('carousel-chip-medieval').click()
 
   await page.getByTestId('audio-file').setInputFiles('tests/fixtures/sample.mp3')
@@ -12,12 +15,18 @@ test('full journey: flavour, upload, transcript, generate, playback', async ({ p
   // transcript now shows read-only by default
   await expect(page.getByText(/we got lost on the trail/i)).toBeVisible({ timeout: 10_000 })
 
+  const ringHandleConfirm = await page.getByTestId('ring-wrapper').elementHandle()
+  expect(await ringHandleLanding!.evaluate((a, b) => a === b, ringHandleConfirm)).toBe(true)
+
   await page.getByTestId('btn-generate').click()
 
   await expect(page.getByTestId('chronicle-text')).toHaveText(
     "Here follows the chronicle of the fellowship's ascent, as testified before this scribe by Alex and Sam.",
     { timeout: 10_000 },
   )
+
+  const ringHandleResult = await page.getByTestId('ring-wrapper').elementHandle()
+  expect(await ringHandleLanding!.evaluate((a, b) => a === b, ringHandleResult)).toBe(true)
 
   // the <audio> is hidden behind the custom player bar, so it is attached but never visible
   await expect(page.getByTestId('btn-playpause')).toBeVisible()
