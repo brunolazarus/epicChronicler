@@ -123,7 +123,12 @@ function Flow() {
           <div
             className="pointer-events-auto absolute"
             style={{
-              left: "var(--ring-left)",
+              // --ring-left is tuned for the ring box; the error card is far wider, so on its own
+              // it runs off the right edge. Clamp so the card keeps a 24px gutter: 444 = its
+              // 420px max width + that gutter, and the max() keeps it on-screen below 468px wide.
+              left: ringShowsError
+                ? "min(var(--ring-left), max(24px, calc(100vw - 444px)))"
+                : "var(--ring-left)",
               top: "var(--ring-top)",
               width: ringShowsError ? "min(420px, calc(100vw - 48px))" : "var(--ring-size)",
               height: ringShowsError ? "auto" : "var(--ring-size)",
