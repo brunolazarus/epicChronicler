@@ -13,23 +13,27 @@ technical and non-technical audiences.
 > three planned topics (idea, SDD, tech stack) and Post 2 combined two (the web demo spike and the MCP
 > pivot). The list below reflects that reality; it gets renumbered as posts ship, not reserved in advance.
 
+> **Reconciliation note (2026-09-10):** Posts 8–14 below (originally numbered 5–11) describe the
+> pre-pivot mobile/Expo/Supabase roadmap, written before the 2026-07-28 direction change to a
+> single-user, web-only MVP (see `docs/PRD.md` §2 and Changelog). They're **superseded**, not current —
+> left in place as a record, not a plan to execute. The actual mobile app is now an optional branch in
+> `docs/HORIZONS.md`, not an assumed next phase. What's actually next — for the project and for future
+> posts — lives in `docs/HORIZONS.md`, a non-linear menu rather than a fixed sequence.
+
 ---
 
 ## Series Overview
 
 | Post | Phase(s) covered | Theme | Status |
 |---|---|---|---|
-| 1 | Pre-build | Idea + SDD + tech stack — published as one combined post | **Published** → [2026-06-03-kickoff.md](devlog/2026-06-03-kickoff.md) |
-| 2 | Phase 0 → 1 | Skipping the backend: web demo spike + MCP server pivot, published as one combined post | **Published** → [2026-06-09-mcp.md](devlog/2026-06-09-mcp.md), [2026-06-22-mcp-linkedin-post.md](devlog/2026-06-22-mcp-linkedin-post.md) |
+| 1 | Pre-build | Idea + SDD + tech stack — published as one combined post | **Published** → [2026-06-03-kickoff.md](linkedin/2026-06-03-kickoff.md) |
+| 2 | Phase 0 → 1 | Skipping the backend: web demo spike + MCP server pivot, published as one combined post | **Published** → [2026-06-09-mcp.md](linkedin/2026-06-09-mcp.md), [2026-06-22-mcp-linkedin-post.md](linkedin/2026-06-22-mcp-linkedin-post.md) |
 | 3 | Phase 0 → 1 | What the AI pipeline actually costs, and where it broke in production | **Structured, pending data** |
-| 4 | Phase 1 | Testing an AI pipeline — mocks, fixtures, and what not to test | **Decision log** → [2026-06-15-testing.md](devlog/2026-06-15-testing.md) |
-| 5 | Phase 2 | Building a production API before the frontend | Draft |
-| 6 | Phase 2 | Supabase, BullMQ, and the architecture of async AI jobs | Draft |
-| 7 | Phase 3 | First screen in Expo — the gap between design and device | Draft |
-| 8 | Phase 4 | Native audio on mobile is harder than I expected | Draft |
-| 9 | Phase 5 | The moment the AI told the story back to me | Draft |
-| 10 | Phase 6 | Submitting to the App Store — what I didn't know I didn't know | Draft |
-| 11 | Post-launch | What I'd do differently | Draft |
+| 4 | Phase 1 | Testing an AI pipeline — mocks, fixtures, and what not to test | **Decision log** → [2026-06-15-testing.md](linkedin/2026-06-15-testing.md) |
+| 5 | Web rebuild | A frontend architecture standard, applied fresh — the `@theme` / `@theme inline` gotcha, promotion-not-preemption, generate-the-contract | **Draft** → [2026-09-10-frontend-standard-linkedin-post.md](linkedin/2026-09-10-frontend-standard-linkedin-post.md) |
+| 6 | Web rebuild → motion rebuild | Solo, design-to-ship: a different AI tool at each handoff (Claude Design → spec → subagent-reviewed execution) | **Draft** → [2026-09-10-claude-design-linkedin-post.md](linkedin/2026-09-10-claude-design-linkedin-post.md) |
+| 7 | Post-MVP | Tooling experiments on a "normal" workflow — Open Design, OpenCode, Pi harness, Xiaomi MiMo | **Stub** → [2026-09-10-tooling-experiments-linkedin-post.md](linkedin/2026-09-10-tooling-experiments-linkedin-post.md) |
+| 8–14 | *(superseded — pre-pivot mobile roadmap, see note above)* | Production API, Supabase+BullMQ, Expo, native audio, App Store | **Superseded** |
 
 ---
 
@@ -37,7 +41,7 @@ technical and non-technical audiences.
 
 **Phase:** Pre-build  
 **Milestone:** Concept defined, SDD complete, tech stack finalised, Phase 0 kicked off  
-**Published as:** [2026-06-03-kickoff.md](devlog/2026-06-03-kickoff.md) — see that file's "As published" section for the actual posted text.
+**Published as:** [2026-06-03-kickoff.md](linkedin/2026-06-03-kickoff.md) — see that file's "As published" section for the actual posted text.
 
 ### What it covered
 Originally planned as three separate posts (idea → why write an SDD first → tech stack rationale). Shipped as a single combined kickoff post instead — the three topics read better together as "day 1" than as a drip-fed series.
@@ -55,7 +59,7 @@ Originally planned as three separate posts (idea → why write an SDD first → 
 
 **Phase:** Phase 0 → Phase 1  
 **Milestone:** Web demo live at epicchronicler.com; MCP server deployed on Railway  
-**Published as:** [2026-06-22-mcp-linkedin-post.md](devlog/2026-06-22-mcp-linkedin-post.md) — see that file's "As published" section for the actual posted text. Full decision background in [2026-06-09-mcp.md](devlog/2026-06-09-mcp.md).
+**Published as:** [2026-06-22-mcp-linkedin-post.md](linkedin/2026-06-22-mcp-linkedin-post.md) — see that file's "As published" section for the actual posted text. Full decision background in [2026-06-09-mcp.md](linkedin/2026-06-09-mcp.md).
 
 ### What it covered
 Originally planned as two separate posts (the Phase 0 web test rig, then the MCP server as its own Phase 1 story). Shipped as one post instead, framed around a single decision: skip the planned Supabase backend and get the core experience in front of real people first.
@@ -133,7 +137,7 @@ Originally planned as two separate posts (the Phase 0 web test rig, then the MCP
 
 ### Visuals (screenshots provided, pending export to repo)
 
-Save all five OpenRouter/Groq dashboard screenshots to `docs/devlog/assets/2026-07-cost-post/` so they can be attached to the post directly (LinkedIn attaches images as media, not inline markdown — this folder is just to keep the source files versioned and easy to grab at publish time):
+Save all five OpenRouter/Groq dashboard screenshots to `docs/linkedin/assets/2026-07-cost-post/` so they can be attached to the post directly (LinkedIn attaches images as media, not inline markdown — this folder is just to keep the source files versioned and easy to grab at publish time):
 
 | # | Chart | Suggested placement |
 |---|---|---|
@@ -163,7 +167,7 @@ Save all five OpenRouter/Groq dashboard screenshots to `docs/devlog/assets/2026-
 **Phase:** Phase 1  
 **Theme:** How do you test a pipeline you can't run for free on every commit?  
 **Milestone:** Fast + integration test suites built, mocking layer in place  
-**Decision log:** [2026-06-15-testing.md](devlog/2026-06-15-testing.md) — already has a written "LinkedIn angle" section and three concrete bugs manual testing caught before automated tests existed.
+**Decision log:** [2026-06-15-testing.md](linkedin/2026-06-15-testing.md) — already has a written "LinkedIn angle" section and three concrete bugs manual testing caught before automated tests existed.
 
 ### Hook
 > "How do you test an AI pipeline without running the AI every time?"
@@ -176,7 +180,40 @@ Save all five OpenRouter/Groq dashboard screenshots to `docs/devlog/assets/2026-
 
 ---
 
-## Post 5 — Building a Production API Before the Frontend
+## Post 5 — A Frontend Standard, Applied Fresh
+
+**Phase:** Web rebuild (Tailwind v4 + shadcn migration)
+**Theme:** The frontend stack wasn't chosen for this project — it's a personal standard, refined across real work, applied here from day one. Leads on the `@theme` vs `@theme inline` gotcha, widens to "promotion, not preemption" and "generate the contract, don't hand-write it."
+**Draft:** [2026-09-10-frontend-standard-linkedin-post.md](linkedin/2026-09-10-frontend-standard-linkedin-post.md) — full draft, ready for review.
+
+---
+
+## Post 6 — Solo, Design-to-Ship, with a Different AI Tool at Each Handoff
+
+**Phase:** Web rebuild → motion rebuild
+**Theme:** How a one-person team actually works end to end with AI at every stage — a visual tool for the spatial decision (Claude Design), a spec/plan workflow for the logical one, fresh reviewed subagents for execution. Anchored on catching a real UX flaw (continuous-scroll breaks on a cyclic flow) before building it.
+**Draft:** [2026-09-10-claude-design-linkedin-post.md](linkedin/2026-09-10-claude-design-linkedin-post.md) — full draft, ready for review. **Not yet safe to publish as-is** — describes work merged locally but not pushed/deployed; see the warning at the top of that file.
+
+---
+
+## Post 7 — Tooling Experiments on a "Normal" Workflow
+
+**Phase:** Post-MVP
+**Theme:** Shifting from the heavily-scaffolded process the project has otherwise used to a lighter, more conventional setup — trying Open Design, OpenCode, Pi harness, and Xiaomi MiMo outside that scaffolding.
+**Stub:** [2026-09-10-tooling-experiments-linkedin-post.md](linkedin/2026-09-10-tooling-experiments-linkedin-post.md) — theme only, not drafted. Needs a comparison axis and a concrete task before drafting. Remember to credit Joel and Phil.
+
+---
+
+## Superseded — Pre-Pivot Mobile Roadmap (originally Posts 5–11)
+
+Written before the 2026-07-28 direction change (`docs/PRD.md` §2/Changelog) that moved groups,
+accounts, and the mobile app to backlog in favor of a single-user, web-only MVP. Left in place below
+as a record of the original plan, not a queue to execute — Supabase was never adopted in production,
+and the mobile app is now an optional branch in `docs/HORIZONS.md`, not an assumed next phase.
+
+---
+
+## Post 8 — Building a Production API Before the Frontend
 
 **Phase:** Phase 2  
 **Theme:** Why I built a full API before the frontend  
@@ -194,7 +231,7 @@ Save all five OpenRouter/Groq dashboard screenshots to `docs/devlog/assets/2026-
 
 ---
 
-## Post 6 — Supabase + BullMQ: Async AI Jobs
+## Post 9 — Supabase + BullMQ: Async AI Jobs
 
 **Phase:** Phase 2  
 **Theme:** How the job queue architecture works  
@@ -212,7 +249,7 @@ Save all five OpenRouter/Groq dashboard screenshots to `docs/devlog/assets/2026-
 
 ---
 
-## Post 7 — First Screen in Expo
+## Post 10 — First Screen in Expo
 
 **Phase:** Phase 3  
 **Theme:** The gap between design and device  
@@ -229,7 +266,7 @@ Save all five OpenRouter/Groq dashboard screenshots to `docs/devlog/assets/2026-
 
 ---
 
-## Post 8 — Native Audio Is Harder Than I Expected
+## Post 11 — Native Audio Is Harder Than I Expected
 
 **Phase:** Phase 4  
 **Theme:** The challenge of audio recording on mobile  
@@ -247,7 +284,7 @@ Save all five OpenRouter/Groq dashboard screenshots to `docs/devlog/assets/2026-
 
 ---
 
-## Post 9 — The Moment the AI Told the Story Back
+## Post 12 — The Moment the AI Told the Story Back
 
 **Phase:** Phase 5  
 **Theme:** The product's core experience working end-to-end  
@@ -264,7 +301,7 @@ Save all five OpenRouter/Groq dashboard screenshots to `docs/devlog/assets/2026-
 
 ---
 
-## Post 10 — App Store Submission
+## Post 13 — App Store Submission
 
 **Phase:** Phase 6  
 **Theme:** What I didn't know I didn't know about shipping to the App Store  
@@ -282,7 +319,7 @@ Save all five OpenRouter/Groq dashboard screenshots to `docs/devlog/assets/2026-
 
 ---
 
-## Post 11 — What I'd Do Differently
+## Post 14 — What I'd Do Differently
 
 **Phase:** Post-launch  
 **Theme:** Honest retrospective  

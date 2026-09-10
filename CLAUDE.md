@@ -136,9 +136,13 @@ epicChronicler/
 │
 ├── scripts/                  # One-off dev utilities (benchmarking etc.)
 ├── docs/
-│   ├── SDD.md                # Source of truth for product decisions
-│   ├── architecture.md       # Mermaid service diagrams
-│   └── devlog/               # LinkedIn build-in-public entries
+│   ├── PRD.md                 # Product requirements — full scope incl. backlog (was SDD.md)
+│   ├── architecture.md       # Mermaid service diagrams — single source for the architecture diagram
+│   ├── ROADMAP.md            # LinkedIn post plan (linear, tracks what's published/drafted)
+│   ├── HORIZONS.md           # Post-MVP direction menu (non-linear — not every branch is a post)
+│   ├── superpowers/
+│   │   └── INDEX.md          # Chronological index of specs/plans — the technical decision ledger
+│   └── linkedin/             # LinkedIn drafts/published posts + 3 pre-superpowers decision logs
 │
 ├── docker-compose.yml        # Redis only
 ├── railway.web.json          # Railway config for epicChronicler-web (API)
@@ -211,7 +215,7 @@ Apply this to every `new OpenAI({...})` call in `packages/core`.
 
 ## Key design decisions (quick reference)
 
-Full reasoning in `docs/SDD.md`. For quick context:
+Full reasoning in `docs/PRD.md`. For quick context:
 
 - **Flavour is per-event** — not per-group
 - **Workers are in-process** — not separate Railway services; they're IO-bound and don't block the event loop
@@ -225,6 +229,8 @@ Full reasoning in `docs/SDD.md`. For quick context:
 ## Docs to update when architecture changes
 
 When the service topology, data flow, or deployment config changes, update all of these:
-1. `docs/architecture.md` — Mermaid diagrams
-2. `docs/SDD.md` — Section 7 (architecture) + changelog
+1. `docs/architecture.md` — Mermaid diagrams; this is the single source for the diagram now, `docs/PRD.md` §7.1 only points here
+2. `docs/PRD.md` — §7.2 (Key Architectural Decisions) and §7.3 (Monorepo/Turborepo) if the decision or rationale itself changed; changelog entry either way
 3. `README.md` — Project structure + design decisions + commands
+
+When adding a new spec or plan under `docs/superpowers/`, append one line to `docs/superpowers/INDEX.md` in the same commit — that index is what keeps the ledger discoverable as it grows.

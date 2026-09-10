@@ -1,7 +1,7 @@
 # AI Provider Mocking Layer — Design
 
 **Date:** 2026-07-01
-**Sub-project:** 1 of 4 (testing plan decomposition — see `docs/devlog/2026-06-15-testing.md`)
+**Sub-project:** 1 of 4 (testing plan decomposition — see `docs/linkedin/2026-06-15-testing.md`)
 **Depends on:** nothing (foundational)
 **Blocks:** web E2E tests, CI wiring
 
@@ -9,7 +9,7 @@
 
 ## Problem
 
-`docs/devlog/2026-06-15-testing.md` planned to mock AI calls via Playwright's `page.route()`, intercepting `api.groq.com` and `openrouter.ai`. That mechanism only intercepts requests made by a browser page. Every AI call in this codebase happens server-side — inside BullMQ workers, via the OpenAI SDK's Node `fetch` client (`packages/core/src/{transcription,llm,tts}/*.ts`). `page.route()` cannot see or fake these calls. The plan's mocking strategy would have mocked nothing.
+`docs/linkedin/2026-06-15-testing.md` planned to mock AI calls via Playwright's `page.route()`, intercepting `api.groq.com` and `openrouter.ai`. That mechanism only intercepts requests made by a browser page. Every AI call in this codebase happens server-side — inside BullMQ workers, via the OpenAI SDK's Node `fetch` client (`packages/core/src/{transcription,llm,tts}/*.ts`). `page.route()` cannot see or fake these calls. The plan's mocking strategy would have mocked nothing.
 
 The devlog's own stated philosophy — "mock at the HTTP boundary, not the function boundary," so real request-building and response-parsing code still runs — is worth keeping. The 2026-06-19 node-fetch/`duplex` production incident was exactly a request-construction bug that only a real HTTP round trip would have caught; a provider-level test double would have missed it. So the goal is an HTTP-boundary mock that actually works for server-to-server calls.
 

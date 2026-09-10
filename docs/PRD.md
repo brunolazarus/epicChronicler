@@ -1,8 +1,15 @@
-# Chronicler — Software Design Document (SDD)
+# Chronicler — Product Requirements Document (PRD)
 
-**Version:** 0.7  
-**Date:** July 2026  
-**Status:** Active — Phase 0 complete; MCP server deployed and working in production (Phase 1 complete). Direction change: group/multiplayer mechanic moved to backlog, single-user experience is now the near-term focus — see §2.
+**Version:** 0.8
+**Date:** 2026-09-10
+**Status:** Active. Renamed from SDD to PRD (see 0.8 changelog entry) — this document is the full
+product requirements, **including backlog scope that isn't built yet** (groups, mobile, accounts).
+It is not a description of what's currently running. For that, see `CLAUDE.md` (current stack +
+architecture), `docs/architecture.md` (current diagram), `docs/ROADMAP.md` (what's shipped, as public
+narrative), and `docs/HORIZONS.md` (what might get built next). §5/§6/§8/§9/§10 below describe the
+full requirements as originally scoped and are intentionally preserved even where the near-term plan
+(§2) has deprioritized the feature they describe — a PRD's job is to hold requirements for backlog
+scope, not just for what's implemented today.
 
 ---
 
@@ -10,6 +17,7 @@
 
 | Version | Date | Summary |
 |---|---|---|
+| 0.8 | 2026-09-10 | Renamed SDD → PRD to match what the document actually is (product requirements, not a living architecture/tech-stack description — those drift too fast to hand-maintain here). §7.1's architecture diagram retired in favor of `docs/architecture.md` (single source); §7.2/§7.3 kept as-is. §11 Tech Stack retired — it had gone stale (still listed Supabase) and duplicated `CLAUDE.md`'s Infrastructure table, which is the one meant to stay current. §12 MVP Phases & Milestones replaced with pointers to `docs/ROADMAP.md`, `docs/HORIZONS.md`, and the new `docs/superpowers/INDEX.md` — that section had been self-flagged "under revision" since 0.7 and never revised; the phase-sequencing job it was doing now belongs to those three files. §13's Table of Contents entry corrected to match its actual heading ("Design Decisions Log", not "Open Questions" — a drift internal to this document, found while doing this pass). §5/§6/§8/§9/§10 (functional/non-functional requirements, data models, API design, AI pipeline) deliberately **not** retired — see the Status line above. |
 | 0.7 | 2026-07-28 | Direction change: groups/multi-perspective merging/TLDR/push notifications moved from MVP scope to backlog (§2) — no monetization intent, and account gating conflicts with the low-friction positioning validated in Phase 1. Phase 2 (§12) is under revision toward a single-user-first plan. |
 | 0.6 | 2026-07-16 | Documented monorepo build tooling (§7.3): Turborepo rationale, current vs. projected task coverage, known gap with the Docker deploy path; added workspace/build-graph diagram to `docs/architecture.md` |
 | 0.5 | 2026-06-19 | Queue architecture refactor: `apps/worker` deleted; each app runs its own BullMQ workers in-process; Redis key prefix isolation (`mcp:`, `web:`) enforces ownership; MCP server now uses R2 for audio upload/download; both services confirmed working in production |
@@ -32,9 +40,9 @@
 8. [Data Models](#8-data-models)
 9. [API Design](#9-api-design)
 10. [AI Pipeline](#10-ai-pipeline)
-11. [Tech Stack](#11-tech-stack)
-12. [MVP Phases & Milestones](#12-mvp-phases--milestones)
-13. [Open Questions](#13-open-questions)
+11. [Tech Stack](#11-tech-stack) — retired, see note in-place
+12. [MVP Phases & Milestones](#12-mvp-phases--milestones) — retired, see note in-place
+13. [Design Decisions Log](#13-design-decisions-log) — TOC previously mislabeled this "Open Questions"; corrected 0.8
 
 ---
 
@@ -149,6 +157,12 @@ Friend groups share experiences constantly, but have no good way to preserve the
 
 ## 5. Functional Requirements
 
+> **Scope note (added 0.8):** §5, §6, §8, §9, and §10 describe the full product as originally
+> designed — including the groups/multi-perspective/mobile scope §2 moved to backlog on 2026-07-28.
+> They're preserved deliberately, not because they're current. The actual single-user MVP's real API
+> is four endpoints (`/upload`, `/jobs/:id`, `/generate`, `/flavours`), generated and documented live
+> at `/doc` — see `packages/api-client` and `CLAUDE.md`, not this section, for what's really running.
+
 ### 5.1 Authentication & User Management
 - [ ] Email/password sign-up and login
 - [ ] Apple Sign-In (required for iOS App Store)
@@ -235,47 +249,11 @@ Friend groups share experiences constantly, but have no good way to preserve the
 
 ### 7.1 High-Level Diagram
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Mobile App (Expo / React Native)          │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ HTTPS REST / WebSocket
-                            ▼
-┌────────────────────────────────────────────────────────────────────┐
-│  epicChronicler-web (Railway)                                       │
-│                                                                     │
-│   ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐   │
-│   │ Auth Service │  │  REST API    │  │  BullMQ Workers        │   │
-│   │ (Supabase)   │  │  (Hono)      │  │  web:transcription:*   │   │
-│   └──────────────┘  └──────────────┘  │  web:chronicle:*       │   │
-│                                        └───────────┬────────────┘   │
-└────────────────────────────────────────────────────┼───────────────┘
-                                                     │
-                    ┌────────────────────────────────┼───────────────────────────┐
-                    │                                │                           │
-                    ▼                                ▼                           ▼
-          ┌─────────────────┐        ┌───────────────────────┐       ┌──────────────────┐
-          │  Cloudflare R2  │        │  AI Pipeline          │       │  Database        │
-          │                 │        │  (packages/core)      │       │  (PostgreSQL via  │
-          │  - Raw audio    │        │                       │       │   Supabase)       │
-          │  - TTS audio    │        │  1. Groq Whisper      │       │                  │
-          │  - Avatars      │        │  2. LLM (OpenRouter)  │       │  - Users         │
-          └─────────────────┘        │  3. TTS (OpenRouter)  │       │  - Groups        │
-                    ▲                └───────────────────────┘       │  - Events        │
-                    │                                                 │  - Recordings    │
-          ┌─────────┴───────────────────────────────────┐            │  - Chronicles    │
-          │  chronicler-mcp (Railway)                   │            └──────────────────┘
-          │                                             │
-          │  HTTP Server + Pipeline Worker (in-process) │
-          │  mcp:pipeline:*                             │
-          │                                             │
-          │  create_audio_upload  →  presigned R2 URL   │
-          │  process_audio        →  enqueue + run      │
-          │  get_audio_job        →  poll result        │
-          └─────────────────────────────────────────────┘
-```
-
-Both Railway services share the same Redis instance. Redis key prefixes (`web:`, `mcp:`) enforce ownership — workers from one service never consume jobs enqueued by the other.
+**Retired (0.8).** This subsection used to hand-draw the architecture in ASCII, and it had drifted —
+still showing a planned Supabase auth/DB service and a mobile client that were never built for the
+current single-user MVP. Rather than fix this copy and let it drift again, the diagram now has exactly
+one home: `docs/architecture.md`. See that file for the current architecture, and `CLAUDE.md`'s
+Infrastructure table for the current deployed services.
 
 ### 7.2 Key Architectural Decisions
 
@@ -306,7 +284,7 @@ Both Railway services share the same Redis instance. Redis key prefixes (`web:`,
 
 **Current usage is intentionally narrow — only `build` goes through Turborepo.** The root `pnpm build` script is `turbo build`. `dev`, `dev:mcp`, and `dev:all` run directly via `concurrently` + `pnpm --filter` (`package.json`), and `test` runs Playwright directly — none of these benefit from Turborepo's cache, since dev servers are long-running watch processes and the test suite isn't scoped per-package.
 
-**Known gap:** `Dockerfile.api` and `Dockerfile.mcp` do **not** call `turbo build`. Each hand-rolls `pnpm --filter @chronicler/core build` because the container runs the app straight from source via `tsx` (e.g. `pnpm --filter api exec tsx src/index.ts`), not from a compiled `dist/` — so `@chronicler/core` is the only package in the image that needs a build step at all. This means Turborepo's dependency-ordering isn't exercised by the deploy path today; it only matters for local full-repo builds (`pnpm build` at the root). It starts pulling real weight once a CI pipeline (GitHub Actions — planned, not yet built; see §11) runs `turbo build` / `turbo test` across the whole workspace, or once a second app depends on more than one `packages/*` entry and the build order can no longer be eyeballed.
+**Known gap:** `Dockerfile.api` and `Dockerfile.mcp` do **not** call `turbo build`. Each hand-rolls `pnpm --filter @chronicler/core build` because the container runs the app straight from source via `tsx` (e.g. `pnpm --filter api exec tsx src/index.ts`), not from a compiled `dist/` — so `@chronicler/core` is the only package in the image that needs a build step at all. This means Turborepo's dependency-ordering isn't exercised by the deploy path today; it only matters for local full-repo builds (`pnpm build` at the root). It starts pulling real weight once a CI pipeline (GitHub Actions — planned, not yet built) runs `turbo build` / `turbo test` across the whole workspace, or once a second app depends on more than one `packages/*` entry and the build order can no longer be eyeballed.
 
 ---
 
@@ -516,145 +494,30 @@ Chronicles:
 
 ## 11. Tech Stack
 
-| Layer | Technology | Why |
-|---|---|---|
-| Mobile | React Native (Expo) | Cross-platform iOS + Android; Expo simplifies audio, push, and OTA updates |
-| Backend | Hono (Node.js / TypeScript) | TypeScript-first, minimal overhead, async-native; future upgrade path to Cloudflare Workers edge deployment |
-| API Docs | `@hono/zod-openapi` + Scalar UI | Routes defined with Zod schemas that double as OpenAPI spec; auto-generated interactive docs served at `/doc` |
-| Database | PostgreSQL via Supabase | Managed Postgres + built-in auth + realtime subscriptions; `@supabase/supabase-js` works natively in Node |
-| File Storage | Cloudflare R2 | S3-compatible, zero egress fees — important for audio streaming; pairs naturally with Hono's Cloudflare lineage |
-| Job Queue | Redis + BullMQ | De facto standard for Node.js async queues; robust retry logic, job prioritisation, and dashboard UI out of the box |
-| Transcription | Groq Whisper (whisper-large-v3-turbo) | Faster than OpenAI Whisper, free tier; OpenAI-compatible API — one-line swap if needed |
-| LLM | Claude Sonnet 4.6 via OpenRouter | Strong creative/narrative output; OpenRouter provides routing + fallback across providers |
-| TTS | Kokoro 82M via OpenRouter | ~$0.000001/char; Kokoro voices mapped per flavour; OpenAI-compatible `/audio/speech` endpoint |
-| MCP Server | Model Context Protocol (`@modelcontextprotocol/sdk`) | Exposes pipeline as AI-callable tools; works in Claude Desktop, Cursor, and any MCP client |
-| Push Notifications | Expo Push Notifications | Free, handles both APNS and FCM from one SDK |
-| CI/CD | GitHub Actions | Standard; free tier sufficient for MVP |
+**Retired (0.8).** This table had gone stale (still listed Supabase/Postgres, which was never adopted
+for the current MVP) and duplicated `CLAUDE.md`'s Infrastructure table, which is the copy meant to
+stay current — see that file's "Infrastructure" section and its External providers list. If groups/
+mobile scope (§2 Backlog) ever gets built, its tech choices get decided fresh at that time, not
+inherited unread from this table's original guesses.
 
 ---
 
 ## 12. MVP Phases & Milestones
 
-> **Rationale for ordering:** The AI pipeline (transcription → LLM → TTS) is the highest-risk and most novel part of Chronicler. It is validated first (Phase 0), then immediately exposed as a usable, shareable artefact via an MCP server (Phase 1) — something real people can interact with before the mobile app exists. The full backend and mobile client follow.
+**Retired (0.8).** This section was a phase-sequenced execution plan — the WHEN/HOW, not the WHAT —
+and Phase 2 had been self-flagged "under revision" since 0.7 and never revised. That job now belongs
+to three files that stay current the way this one couldn't: `docs/ROADMAP.md` (what's actually shipped,
+as public narrative), `docs/HORIZONS.md` (what might get built next — a menu, not a phase queue), and
+`docs/superpowers/INDEX.md` (the technical decision ledger for everything built since 2026-07-01).
 
----
-
-### Phase 0 — AI Pipeline Spike ✅ Complete
-**Goal:** Prove the full AI pipeline works, costs are acceptable, and latency is within targets — before writing a single line of mobile code.
-
-- [x] Hono + TypeScript project scaffolded (monorepo root)
-- [x] Cloudflare R2 bucket set up; upload/download working
-- [x] BullMQ worker wired to Redis; basic job round-trip confirmed
-- [x] Groq Whisper transcription job: upload audio → get transcript
-- [x] LLM chronicle job: transcripts + flavour prompt → chronicle text (all 4 flavours tested)
-- [x] TTS job: chronicle text → audio file stored in R2 (Kokoro 82M via OpenRouter)
-- [x] Provider abstraction layer: each AI capability behind an interface; swap is one line
-- [x] **Minimal web test rig** — HTML page that drives the full pipeline end to end
-- [x] OpenAPI docs auto-generated from route schemas (`@hono/zod-openapi` + Scalar UI at `/doc`)
-- [x] Per-chronicle cost and latency logged and reviewed
-
-**Outcome:** Full pipeline confirmed working. Cost per chronicle: fractions of a cent. Latency: within targets.
-
----
-
-### Phase 1 — MCP Server ✅ Complete
-**Goal:** Make the pipeline callable from any AI assistant (Claude Desktop, Cursor, etc.) — a working, shareable artefact that demonstrates the product without requiring the mobile app.
-
-- [x] Monorepo restructured: shared providers extracted to `packages/core` (`@chronicler/core`)
-- [x] `apps/mcp` scaffolded with `@modelcontextprotocol/sdk`
-- [x] `create_audio_upload` tool: returns presigned R2 PUT URL + fileId; audio uploads directly from client to R2
-- [x] `process_audio` tool: enqueues uploaded file for full pipeline (transcribe → chronicle → TTS); returns jobId
-- [x] `get_audio_job` tool: polls job status; returns chronicle text + presigned R2 URL for TTS audio when complete
-- [x] `generate_chronicle` tool: accepts text transcripts + flavour → returns chronicle text + MP3 audio (no upload needed)
-- [x] Pipeline worker runs in-process alongside the MCP HTTP server (BullMQ, `mcp:pipeline:*` prefix on shared Redis)
-- [x] MCP server deployed on Railway (HTTP transport, Bearer auth)
-- [x] MCP server tested end-to-end in production: audio upload → chronicle text + narration ✅
-- [x] README updated with MCP usage instructions and available tools
-
-**Outcome:** Any AI assistant with MCP support can upload a voice recording and receive a narrated chronicle in the chosen flavour. Works with Claude Desktop and Cursor against the deployed Railway endpoint.
-
-**Note:** `apps/worker` was created as a standalone package during this phase then removed — workers are now owned in-process by each app, isolated via Redis key prefixes.
-
----
-
-### Phase 2 — Backend Foundation ⚠️ Under revision (2026-07-28)
-**Goal:** Full production API built on top of the proven pipeline; no mobile code yet.
-
-**This phase as written below assumes the groups/multiplayer mechanic, which is now backlog (§2).** Most of the checklist below exists to serve groups (auth, roles, invite links, contributor caps) and no longer reflects the near-term plan. Left in place as a record of the original design until the single-user-first replacement plan is written.
-
-- [ ] Supabase Auth middleware integrated into Hono (JWT validation)
-- [ ] User registration, login, OAuth (Google + Apple) endpoints
-- [ ] Groups API: create, invite link, join via token, member list
-- [ ] Events API: create with flavour selection, list, status lifecycle
-- [ ] Recordings API: upload endpoint, contributor cap enforcement, owner delete
-- [ ] Chronicle API: `/generate` (any member) + `/regenerate` (owner only), versioning
-- [ ] BullMQ workers for transcription and chronicle generation promoted to production jobs
-- [ ] Usage limits enforced: max 3 groups/user, 10 recordings/user/month
-- [ ] Audio deletion job: purge R2 raw audio 24h after successful transcription
-- [ ] Expo Push notification integration (send on chronicle ready + new perspective)
-- [ ] TLDR endpoint (uses all group chronicles as context)
-- [ ] API fully testable via HTTP client (Hoppscotch / Postman collection)
-
-**Exit criteria:** The entire API can be exercised via HTTP client: create a group, add an event, upload two recordings, generate a chronicle, receive push notification.
-
----
-
-### Phase 3 — Mobile Foundation _(postponed)_
-**Goal:** Expo app scaffolded; auth and group management working on device.
-
-- [ ] Expo project setup with TypeScript + file-based routing
-- [ ] Auth screens: sign up, log in, Apple Sign-In, Google OAuth
-- [ ] Group list screen + create group flow
-- [ ] Invite link generation + deep-link join flow
-- [ ] Group home screen (event timeline, empty state)
-- [ ] Profile screen: display name + avatar
-
-**Exit criteria:** A user can sign up, create a group, invite a friend via link, and both see the group on their device.
-
----
-
-### Phase 4 — Recording Loop _(postponed)_
-**Goal:** Members can record, upload, and see transcripts on device.
-
-- [ ] Event creation screen with flavour picker
-- [ ] In-app audio recorder with waveform visualisation (Expo AV)
-- [ ] Playback before submit; re-record option
-- [ ] Upload audio to R2 from mobile; show upload progress
-- [ ] Transcription status polling: `TRANSCRIBING` → `TRANSCRIBED` indicator
-- [ ] Event screen: contributor list, recording status per member
-- [ ] UI enforcement of 2-contributor cap ("event full" state)
-
-**Exit criteria:** Two members on the same event each record a story and both see their transcripts appear.
-
----
-
-### Phase 5 — Chronicle + Full Experience _(postponed)_
-**Goal:** The complete Chronicler experience works end-to-end on device.
-
-- [ ] "Generate Chronicle" trigger in event screen (any member)
-- [ ] Chronicle loading state (async job polling or WebSocket)
-- [ ] Chronicle display screen: text + contributor credits
-- [ ] TTS audio playback with playback controls
-- [ ] "Regenerate" action gated to owner
-- [ ] Push notification received on device when chronicle is ready
-- [ ] Multi-perspective merge confirmed working with 2 contributors
-
-**Exit criteria:** A group with two recordings generates a narrated chronicle, both members receive a push notification, and can listen to the TTS audio.
-
----
-
-### Phase 6 — TLDR, Polish & Launch _(postponed)_
-**Goal:** TLDR complete; app is shippable.
-
-- [ ] TLDR screen: generated on new-member onboarding + available on demand
-- [ ] New member onboarding flow (join group → TLDR prompt)
-- [ ] Error states: failed transcription, failed generation, network errors
-- [ ] Waveform playback UI polish
-- [ ] Cold start performance pass (target < 2s)
-- [ ] App Store + Play Store metadata, screenshots, privacy policy
-- [ ] TestFlight / internal track testing
-
-**Exit criteria:** App submitted to both stores.
+What's worth keeping here as a permanent record, briefly: **Phase 0 (AI pipeline spike) and Phase 1
+(MCP server) both completed** — full transcribe → rewrite → narrate pipeline validated at fractions of
+a cent per chronicle, then exposed as MCP tools and deployed to production on Railway, both ahead of
+any mobile client. Everything from "Phase 2" onward assumed the groups/multiplayer/mobile scope that
+§2 moved to backlog on 2026-07-28; its detailed checklists (Supabase auth, Expo screens, push
+notifications, App Store submission) live on in git history (`git log -p -- docs/SDD.md` before the
+0.8 rename) if that scope ever gets picked back up, but repeating them here as if they were a live
+plan was exactly the kind of staleness this rename set out to fix.
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Monorepo Layout
 
-Current workspace members, the build/task graph, and the infrastructure each app talks to. Dashed nodes and edges are projected — not built yet. Rationale for Turborepo is in `docs/SDD.md` §7.3.
+Current workspace members, the build/task graph, and the infrastructure each app talks to. Dashed nodes and edges are projected — not built yet. Rationale for Turborepo is in `docs/PRD.md` §7.3.
 
 ```mermaid
 flowchart TB
@@ -31,7 +31,7 @@ flowchart TB
     class MOBILE,SUPABASE projected
 ```
 
-**Note:** the Docker deploy path (`Dockerfile.api`, `Dockerfile.mcp`) bypasses `turbo build` and calls `pnpm --filter @chronicler/core build` directly — see SDD §7.3 for why.
+**Note:** the Docker deploy path (`Dockerfile.api`, `Dockerfile.mcp`) bypasses `turbo build` and calls `pnpm --filter @chronicler/core build` directly — see PRD §7.3 for why.
 
 ---
 

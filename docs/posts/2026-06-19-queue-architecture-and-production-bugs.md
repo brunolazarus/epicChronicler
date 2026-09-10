@@ -4,6 +4,10 @@
 **Phase:** 1
 **Status:** Both web app and MCP server confirmed working end-to-end in production
 
+> **Note (2026-09-10):** Written before `docs/superpowers/specs/` existed (first spec there is
+> 2026-07-01). This is the pre-superpowers version of a spec — same job, public-narrative voice. Not
+> indexed in `docs/superpowers/INDEX.md`; see that file's "Related, not part of this ledger" note.
+
 ---
 
 ## What changed

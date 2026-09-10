@@ -1,7 +1,7 @@
 # Web E2E Tests — Design
 
 **Date:** 2026-07-01
-**Sub-project:** 2 of 4 (testing plan decomposition — see `docs/devlog/2026-06-15-testing.md`)
+**Sub-project:** 2 of 4 (testing plan decomposition — see `docs/linkedin/2026-06-15-testing.md`)
 **Depends on:** sub-project 1, AI provider mocking layer (merged)
 **Blocks:** nothing — independent of sub-project 3 (MCP tool tests)
 

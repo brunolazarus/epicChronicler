@@ -251,7 +251,7 @@ scripts/          # Dev utilities — benchmarking, one-off tools
 
 ## Design decisions
 
-Full reasoning behind every architectural choice is in [`docs/SDD.md`](docs/SDD.md). Key decisions:
+Full reasoning behind every architectural choice is in [`docs/PRD.md`](docs/PRD.md). Key decisions:
 
 - **Flavour is per-event, not per-group** — different events have different tones
 - **Raw audio is deleted after transcription** — voice data under GDPR/CCPA is a liability; the transcript is what matters
