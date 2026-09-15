@@ -1,14 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { StepBoundary } from "./views/StepBoundary.js";
 import { SceneBand } from "./views/SceneBand.js";
-import { RecordRing } from "./views/RecordRing.js";
+import { RecordRing } from "./views/RecordRing/index.js";
 import { PipelineStrip } from "./views/PipelineStrip.js";
 import { NoticeCard } from "./views/NoticeCard.js";
 import { HeroCopyGrid } from "./views/HeroCopyGrid.js";
 import { LandingView } from "./views/LandingView.js";
-import { ConfirmView } from "./views/ConfirmView.js";
+import { ConfirmView } from "./views/ConfirmView/index.js";
 import { ProcessingView } from "./views/ProcessingView.js";
-import { ChronicleView } from "./views/ChronicleView.js";
+import { ChronicleView } from "./views/ChronicleView/index.js";
 import { useChroniclePresenter } from "./presenters/useChroniclePresenter.js";
 import { getFlavourTheme } from "./theme.js";
 
