@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card.js'
-import { NarratorCarousel } from './NarratorCarousel.js'
+import { NarratorCarousel } from './NarratorCarousel/index.js'
+import type { Flavour } from '../models/useFlavours.js'
 
 const SAMPLE_CHRONICLE = `Here follows the chronicle of the Siege of the Flatpack Throne, as testified before this scribe by Marco and Júlia.
 
@@ -9,18 +10,12 @@ Three hours did the siege endure. Twice was a shelf mounted backward and twice u
 
 Let it be remembered: no furniture was harmed beyond repair, and the friendship, like the bookshelf, held.`
 
-interface FlavourSummary {
-  key: string
-  name: string
-  description: string
-}
-
 export function LandingView({
   flavours,
   selectedFlavour,
   selectFlavour,
 }: {
-  flavours: FlavourSummary[]
+  flavours: Flavour[]
   selectedFlavour: string | null
   selectFlavour: (key: string) => void
 }) {

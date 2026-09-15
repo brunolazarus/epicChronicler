@@ -1,15 +1,12 @@
 import { useRef } from 'react'
 import { Button } from '@/components/ui/button.js'
-import { getFlavourTheme } from '../theme.js'
-
-interface FlavourSummary {
-  key: string
-  name: string
-  description: string
-}
+import type { Flavour } from '../../models/useFlavours.js'
+import { CarouselHeader } from './CarouselHeader.js'
+import { FlavourCard } from './FlavourCard.js'
+import { CarouselDots } from './CarouselDots.js'
 
 export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
-  flavours: FlavourSummary[]
+  flavours: Flavour[]
   selectedFlavour: string | null
   selectFlavour: (key: string) => void
 }) {
@@ -46,10 +43,7 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
         style={{ background: 'radial-gradient(ellipse at center, var(--accent-soft) 0%, transparent 66%)' }}
       />
       <div className="relative px-6 md:px-12">
-        <div className="mb-4 flex items-baseline justify-between">
-          <div className="font-mono text-[11px] uppercase tracking-[.14em] text-fg-faint">Narrator</div>
-          <div className="text-xs text-fg-soft">{current?.name ?? ''}</div>
-        </div>
+        <CarouselHeader currentName={current?.name ?? ''} />
 
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" aria-label="Previous narrator" onClick={prev} className="shrink-0 border-line-muted text-fg-soft">‹</Button>
@@ -84,50 +78,22 @@ export function NarratorCarousel({ flavours, selectedFlavour, selectFlavour }: {
                 transform: `translateX(calc(50% - var(--card-w) / 2 - ${activeIndex} * var(--card-step)))`,
               }}
             >
-              {flavours.map((f) => {
-                const selected = f.key === selectedFlavour
-                return (
-                  <div
-                    key={f.key}
-                    data-testid={`carousel-chip-${f.key}`}
-                    data-flavour={f.key}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => onCardClick(f.key)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectFlavour(f.key) } }}
-                    className={[
-                      'w-40 sm:w-44 md:w-[258px] shrink-0 cursor-pointer rounded-xl p-5',
-                      'transition-all duration-[var(--dur-card)] ease-[cubic-bezier(.22,.8,.26,1)] motion-reduce:transition-none',
-                      selected
-                        ? 'scale-100 opacity-100 border border-accent-line bg-accent-ghost shadow-[0_0_44px_var(--accent-soft)]'
-                        : 'scale-90 opacity-50 border border-line-muted bg-transparent',
-                    ].join(' ')}
-                  >
-                    <div className="mb-4 flex h-24 items-center justify-center rounded-lg border border-dashed border-line-muted [background-image:repeating-linear-gradient(45deg,rgba(233,233,237,.05)_0_5px,transparent_5px_10px)]">
-                      <span className="font-mono text-[9px] tracking-[.06em] text-fg-muted">{getFlavourTheme(f.key).art}</span>
-                    </div>
-                    <div className={`mb-[7px] text-base font-medium leading-tight ${selected ? 'text-fg' : 'text-fg-muted'}`}>{f.name}</div>
-                    <div className="min-h-[35px] text-xs leading-[1.45] text-fg-muted">{f.description}</div>
-                  </div>
-                )
-              })}
+              {flavours.map((f) => (
+                <FlavourCard
+                  key={f.key}
+                  flavour={f}
+                  selected={f.key === selectedFlavour}
+                  onClick={() => onCardClick(f.key)}
+                  onSelect={() => selectFlavour(f.key)}
+                />
+              ))}
             </div>
           </div>
 
           <Button variant="outline" size="icon" aria-label="Next narrator" onClick={next} className="shrink-0 border-line-muted text-fg-soft">›</Button>
         </div>
 
-        <div className="mt-5 flex justify-center gap-1.5">
-          {flavours.map((f, i) => (
-            <button
-              key={f.key}
-              data-testid={`carousel-dot-${f.key}`}
-              aria-label={`Go to ${f.name}`}
-              onClick={() => selectFlavour(f.key)}
-              className={`h-1.5 rounded-full transition-all duration-[var(--dur-dots)] motion-reduce:transition-none ${i === activeIndex ? 'w-[22px] bg-accent' : 'w-1.5 bg-line-muted'}`}
-            />
-          ))}
-        </div>
+        <CarouselDots flavours={flavours} activeIndex={activeIndex} selectFlavour={selectFlavour} />
       </div>
     </div>
   )
