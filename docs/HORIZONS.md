@@ -72,6 +72,11 @@ want to be credited before publishing.
 - **More robust infrastructure / system design.** Needs scoping — what specifically (multi-region,
   IaC, better queue observability, something else). Pair this with the two items below rather than
   treating "infra" as one undifferentiated task.
+- **Path-scoped Railway deploys.** `railway.web.json` and `railway.mcp.json` have no deploy-trigger
+  path filter today, so a push touching only `apps/web` redeploys `epicChronicler-mcp` too (and vice
+  versa) — wasted build minutes and an unnecessary restart of a service nothing changed in. Fix is
+  scoping each service's deploy trigger to its own directory (Railway's watch-paths setting, or
+  equivalent). Small, concrete, no scoping needed — just hasn't been done yet.
 - **Evals for the AI pipeline.** Not just swapping providers — measuring them: an LLM-as-judge or
   rubric score for chronicle quality per flavour, tracked across model swaps, alongside cost/latency.
   Natural extension of the provider-registry pattern that already exists. Current pick for

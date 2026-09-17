@@ -178,7 +178,7 @@ describe('useChroniclePresenter', () => {
       code: 'unsupported-format',
       fileName: 'voice.aiff',
       value: 'aiff',
-      limit: 'webm · mp3 · m4a · wav · ogg',
+      limit: 'webm · mp3 · mp4 · m4a · wav · ogg',
     })
     expect(client.POST).not.toHaveBeenCalled()
   })
@@ -386,7 +386,7 @@ describe('useChroniclePresenter', () => {
       detail: 'ERR_UNSUPPORTED_FORMAT',
       fileName: 'voice.aiff',
       value: 'aiff',
-      limit: 'webm · mp3 · m4a · wav · ogg',
+      limit: 'webm · mp3 · mp4 · m4a · wav · ogg',
     })
 
     act(() => result.current.clearUploadError())

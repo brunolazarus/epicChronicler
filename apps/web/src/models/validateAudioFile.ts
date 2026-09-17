@@ -1,5 +1,5 @@
 const MAX_BYTES = 25 * 1024 * 1024
-const SUPPORTED_EXTENSIONS = ['webm', 'mp3', 'm4a', 'wav', 'ogg']
+const SUPPORTED_EXTENSIONS = ['webm', 'mp3', 'mp4', 'm4a', 'wav', 'ogg']
 
 export type AudioValidation =
   | { ok: true }
@@ -23,7 +23,7 @@ export function validateAudioFile(file: File): AudioValidation {
       code: 'unsupported-format',
       fileName: file.name,
       value: ext,
-      limit: 'webm · mp3 · m4a · wav · ogg',
+      limit: 'webm · mp3 · mp4 · m4a · wav · ogg',
     }
   }
   return { ok: true }

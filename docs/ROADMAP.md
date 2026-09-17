@@ -28,9 +28,9 @@ technical and non-technical audiences.
 |---|---|---|---|
 | 1 | Pre-build | Idea + SDD + tech stack — published as one combined post | **Published** → [2026-06-03-kickoff.md](linkedin/2026-06-03-kickoff.md) |
 | 2 | Phase 0 → 1 | Skipping the backend: web demo spike + MCP server pivot, published as one combined post | **Published** → [2026-06-09-mcp.md](linkedin/2026-06-09-mcp.md), [2026-06-22-mcp-linkedin-post.md](linkedin/2026-06-22-mcp-linkedin-post.md) |
-| 3 | Phase 0 → 1 | What the AI pipeline actually costs, and where it broke in production | **Structured, pending data** |
+| 3 | Phase 0 → 1 | What the AI pipeline actually costs, and where it broke in production | **Published** → [live on LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7487658303137755136/), no local "as published" copy captured yet |
 | 4 | Phase 1 | Testing an AI pipeline — mocks, fixtures, and what not to test | **Decision log** → [2026-06-15-testing.md](linkedin/2026-06-15-testing.md) |
-| 5 | Web rebuild | A frontend architecture standard, applied fresh — the `@theme` / `@theme inline` gotcha, promotion-not-preemption, generate-the-contract | **Draft** → [2026-09-10-frontend-standard-linkedin-post.md](linkedin/2026-09-10-frontend-standard-linkedin-post.md) |
+| 5 | Web rebuild | A frontend architecture standard, applied fresh — carried in from years of prior projects, now under pressure from a real one; closes with a direct teaser into Post 6 | **Ready to publish** → [2026-09-10-frontend-standard-linkedin-post.md](posts/2026-09-10-frontend-standard-linkedin-post.md) |
 | 6 | Web rebuild → motion rebuild | Solo, design-to-ship: a different AI tool at each handoff (Claude Design → spec → subagent-reviewed execution) | **Draft** → [2026-09-10-claude-design-linkedin-post.md](linkedin/2026-09-10-claude-design-linkedin-post.md) |
 | 7 | Post-MVP | Tooling experiments on a "normal" workflow — Open Design, OpenCode, Pi harness, Xiaomi MiMo | **Stub** → [2026-09-10-tooling-experiments-linkedin-post.md](linkedin/2026-09-10-tooling-experiments-linkedin-post.md) |
 | 8–14 | *(superseded — pre-pivot mobile roadmap, see note above)* | Production API, Supabase+BullMQ, Expo, native audio, App Store | **Superseded** |
@@ -76,6 +76,7 @@ Originally planned as two separate posts (the Phase 0 web test rig, then the MCP
 
 ## Post 3 — The Infrastructure Bet: Running Real AI in Production for (Almost) Nothing
 
+**Status:** Published, [live on LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7487658303137755136/) — this table previously had it marked "Structured, pending data"; corrected 2026-09-15 after confirming it's actually up. No local file captures the as-published text (Posts 1 and 2 both have one); worth backfilling at some point but not done here.
 **Phase:** Phase 0 → Phase 1  
 **Theme:** The deliberate infra + free-tier choices (Groq, R2, a swappable OpenRouter registry) are why the AI side of this costs a rounding error — the real recurring cost is the $5/month Railway hosting floor, not the AI calls. Cost analysis first; the Kokoro reliability hiccup is a one-line caveat, not the plot.  
 **Milestone:** Phase 0 pipeline validated; real billing data pulled from OpenRouter, Groq, and Railway dashboards (2026-07-27)  
@@ -183,8 +184,8 @@ Save all five OpenRouter/Groq dashboard screenshots to `docs/linkedin/assets/202
 ## Post 5 — A Frontend Standard, Applied Fresh
 
 **Phase:** Web rebuild (Tailwind v4 + shadcn migration)
-**Theme:** The frontend stack wasn't chosen for this project — it's a personal standard, refined across real work, applied here from day one. Leads on the `@theme` vs `@theme inline` gotcha, widens to "promotion, not preemption" and "generate the contract, don't hand-write it."
-**Draft:** [2026-09-10-frontend-standard-linkedin-post.md](linkedin/2026-09-10-frontend-standard-linkedin-post.md) — full draft, ready for review.
+**Theme:** The frontend stack wasn't chosen for this project — it's a personal standard, refined across real work, applied here from day one. Frames the standard as a hypothesis under active pressure-testing from a real project, not a frozen document; closes with a deliberate teaser into Post 6 ("a pretty different kind of input... AI design tools... that's next").
+**Draft:** [2026-09-10-frontend-standard-linkedin-post.md](posts/2026-09-10-frontend-standard-linkedin-post.md) — final, ready to publish (verified against the codebase 2026-09-15). Publish close to Post 6 since the ending teases it directly.
 
 ---
 

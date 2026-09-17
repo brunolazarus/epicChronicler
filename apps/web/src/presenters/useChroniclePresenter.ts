@@ -242,7 +242,7 @@ export function useChroniclePresenter() {
         }
       : {
           title: "That format isn't supported",
-          body: 'Chronicler reads webm, mp3, m4a, wav and ogg. Convert the file, or record directly in the browser instead.',
+          body: 'Chronicler reads webm, mp3, mp4, m4a, wav and ogg. Convert the file, or record directly in the browser instead.',
           detail: VALIDATION_DETAIL[uploadValidationError.code],
           fileName: uploadValidationError.fileName,
           value: uploadValidationError.value,

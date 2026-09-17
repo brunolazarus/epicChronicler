@@ -20,12 +20,17 @@ describe('validateAudioFile', () => {
       code: 'unsupported-format',
       fileName: 'voice.aiff',
       value: 'aiff',
-      limit: 'webm · mp3 · m4a · wav · ogg',
+      limit: 'webm · mp3 · mp4 · m4a · wav · ogg',
     })
   })
 
   it('accepts a supported format under the size limit', () => {
     const file = new File(['bytes'], 'recording.webm', { type: 'audio/webm' })
+    expect(validateAudioFile(file)).toEqual({ ok: true })
+  })
+
+  it('accepts mp4 — what iOS Safari\'s MediaRecorder actually produces', () => {
+    const file = new File(['bytes'], 'recording.mp4', { type: 'audio/mp4' })
     expect(validateAudioFile(file)).toEqual({ ok: true })
   })
 })
