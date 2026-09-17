@@ -1,5 +1,6 @@
-import { getFlavourTheme, type FlavourTheme } from '../../theme.js'
+import type { FlavourTheme } from '../../theme.js'
 import type { Flavour } from '../../models/useFlavours.js'
+import { FlavourChips } from '../FlavourChips.js'
 import { formatTime, stagger } from './format.js'
 
 export function ChronicleBody({ theme, wordCount, duration, leadParas, payoff, flavours, selectedFlavour, retellAs }: {
@@ -37,29 +38,14 @@ export function ChronicleBody({ theme, wordCount, duration, leadParas, payoff, f
         )}
       </div>
 
-      <div className="mt-[26px] flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-[11.5px] text-fg-muted">Tell it again as</span>
-        {flavours.map((f) => {
-          const t = getFlavourTheme(f.key)
-          const on = f.key === selectedFlavour
-          return (
-            <div
-              key={f.key}
-              data-testid={`retell-${f.key}`}
-              data-flavour={f.key}
-              role="button"
-              tabIndex={0}
-              onClick={() => retellAs(f.key)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); retellAs(f.key) } }}
-              className={[
-                'cursor-pointer rounded-full px-[13px] py-[7px] text-xs',
-                on ? 'border border-accent bg-accent-ghost text-fg' : 'border border-line-muted bg-transparent text-fg-muted',
-              ].join(' ')}
-            >
-              {t.short}
-            </div>
-          )
-        })}
+      <div className="mt-[26px]">
+        <FlavourChips
+          label="Tell it again as"
+          flavours={flavours}
+          selectedFlavour={selectedFlavour}
+          onSelect={retellAs}
+          testIdPrefix="retell"
+        />
       </div>
     </div>
   )

@@ -7,9 +7,12 @@ import { ChronicleHeader } from './ChronicleHeader.js'
 import { TranscriptColumn } from './TranscriptColumn.js'
 import { ChronicleBody } from './ChronicleBody.js'
 import { AudioPlayer } from './AudioPlayer.js'
+import { ChronicleFooter } from './ChronicleFooter.js'
 import { countWords } from './format.js'
 
-export function ChronicleView({ chronicleText, audioKey, transcript, flavours, selectedFlavour, retellAs, jobOutcome, restart, jobId = '—', markerRef }: {
+export function ChronicleView({
+  chronicleText, audioKey, transcript, flavours, selectedFlavour, retellAs, jobOutcome, restart, retryGenerate, jobId = '—', markerRef,
+}: {
   chronicleText: string | null
   audioKey: string | null
   transcript: string
@@ -18,13 +21,21 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
   retellAs: (key: string) => void
   jobOutcome: 'expired' | 'failed' | null
   restart: () => void
+  retryGenerate?: () => void
   jobId?: string
   markerRef?: React.Ref<HTMLDivElement>
 }) {
   const [duration, setDuration] = useState(0)
 
   if (jobOutcome) {
-    return <EmptyStateShell kind={jobOutcome === 'expired' ? 'expired' : 'generic'} jobId={jobId} onPrimary={restart} />
+    return (
+      <EmptyStateShell
+        kind={jobOutcome === 'expired' ? 'expired' : 'generic'}
+        jobId={jobId}
+        onPrimary={restart}
+        onRetry={retryGenerate}
+      />
+    )
   }
 
   const theme = getFlavourTheme(selectedFlavour ?? 'medieval')
@@ -55,6 +66,7 @@ export function ChronicleView({ chronicleText, audioKey, transcript, flavours, s
         </div>
 
         {audioKey && <AudioPlayer audioKey={audioKey} staggerIndex={playerIndex} onDurationChange={setDuration} />}
+        <ChronicleFooter audioKey={audioKey} onRestart={restart} />
       </Card>
     </div>
   )

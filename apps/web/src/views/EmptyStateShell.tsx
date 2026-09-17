@@ -2,10 +2,11 @@ import { Button } from '@/components/ui/button.js'
 import { Card } from '@/components/ui/card.js'
 import { ClockCounterClockwiseIcon, WarningCircleIcon } from '@/lib/icons.js'
 
-export function EmptyStateShell({ kind, jobId, onPrimary }: {
+export function EmptyStateShell({ kind, jobId, onPrimary, onRetry }: {
   kind: 'expired' | 'generic'
   jobId: string
   onPrimary: () => void
+  onRetry?: () => void
 }) {
   const isExpired = kind === 'expired'
   const title = isExpired ? 'This session has ended' : 'Something went wrong'
@@ -44,7 +45,7 @@ export function EmptyStateShell({ kind, jobId, onPrimary }: {
         <div className="flex flex-wrap items-center justify-center gap-2.5">
           <Button
             variant={isExpired ? 'outline' : 'error'}
-            onClick={onPrimary}
+            onClick={isExpired ? onPrimary : (onRetry ?? onPrimary)}
             {...(!isExpired ? { 'data-error-control': true } : {})}
           >
             {ctaLabel}

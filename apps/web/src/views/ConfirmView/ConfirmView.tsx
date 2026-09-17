@@ -1,15 +1,21 @@
 import { useState } from 'react'
 import { Card } from '@/components/ui/card.js'
 import { getFlavourTheme } from '../../theme.js'
+import type { Flavour } from '../../models/useFlavours.js'
+import { FlavourChips } from '../FlavourChips.js'
 import { ConfirmHeader } from './ConfirmHeader.js'
 import { TranscriptPanel } from './TranscriptPanel.js'
 import { ActionBar } from './ActionBar.js'
 
-export function ConfirmView({ transcript, setTranscript, confirmTranscript, selectedFlavour, recordingLabel, wordCount, markerRef }: {
+export function ConfirmView({
+  transcript, setTranscript, confirmTranscript, selectedFlavour, selectFlavour, flavours, recordingLabel, wordCount, markerRef,
+}: {
   transcript: string
   setTranscript: (text: string) => void
   confirmTranscript: () => void
   selectedFlavour: string
+  selectFlavour: (key: string) => void
+  flavours: Flavour[]
   recordingLabel: string | null
   wordCount: number
   markerRef?: React.Ref<HTMLDivElement>
@@ -47,6 +53,16 @@ export function ConfirmView({ transcript, setTranscript, confirmTranscript, sele
             recordingLabel={recordingLabel}
             wordCount={wordCount}
           />
+
+          <div className="mt-[18px]">
+            <FlavourChips
+              label="Narrate as"
+              flavours={flavours}
+              selectedFlavour={selectedFlavour}
+              onSelect={selectFlavour}
+              testIdPrefix="confirm-flavour"
+            />
+          </div>
 
           <ActionBar
             confirmTranscript={confirmTranscript}

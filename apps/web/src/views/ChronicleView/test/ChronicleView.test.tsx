@@ -74,4 +74,48 @@ describe('ChronicleView', () => {
     />)
     expect(container.querySelectorAll('[data-stagger]')).toHaveLength(0)
   })
+
+  it('shows a nothing-is-saved notice and a download link for the audio', () => {
+    render(<ChronicleView chronicleText="A legend." audioKey="tts-1.mp3" transcript="t" flavours={flavours}
+      selectedFlavour="medieval" retellAs={() => {}} jobOutcome={null} restart={() => {}} />)
+    expect(screen.getByText(/Nothing here is saved/)).toBeInTheDocument()
+    const link = screen.getByText('Download audio')
+    expect(link).toHaveAttribute('href', '/api/v1/pipeline/audio/tts-1.mp3')
+    expect(link).toHaveAttribute('download')
+  })
+
+  it('omits the download link when there is no audio yet', () => {
+    render(<ChronicleView chronicleText="A legend." audioKey={null} transcript="t" flavours={flavours}
+      selectedFlavour="medieval" retellAs={() => {}} jobOutcome={null} restart={() => {}} />)
+    expect(screen.queryByText('Download audio')).not.toBeInTheDocument()
+  })
+
+  it('resets to landing via the "Start a new story" button', async () => {
+    const restart = vi.fn()
+    render(<ChronicleView chronicleText="A legend." audioKey="tts-1.mp3" transcript="t" flavours={flavours}
+      selectedFlavour="medieval" retellAs={() => {}} jobOutcome={null} restart={restart} />)
+    await userEvent.click(screen.getByText('Start a new story'))
+    expect(restart).toHaveBeenCalled()
+  })
+
+  it('retries the same generation instead of restarting, on a generic failure', async () => {
+    const restart = vi.fn()
+    const retryGenerate = vi.fn()
+    render(<ChronicleView chronicleText={null} audioKey={null} transcript="" flavours={flavours}
+      selectedFlavour="medieval" retellAs={vi.fn()} jobOutcome="failed" restart={restart} retryGenerate={retryGenerate} />)
+    await userEvent.click(screen.getByText('Try again'))
+    expect(retryGenerate).toHaveBeenCalled()
+    expect(restart).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByText('Back to start'))
+    expect(restart).toHaveBeenCalled()
+  })
+
+  it('falls back to restart on a generic failure when no retryGenerate is given', async () => {
+    const restart = vi.fn()
+    render(<ChronicleView chronicleText={null} audioKey={null} transcript="" flavours={flavours}
+      selectedFlavour="medieval" retellAs={vi.fn()} jobOutcome="failed" restart={restart} />)
+    await userEvent.click(screen.getByText('Try again'))
+    expect(restart).toHaveBeenCalled()
+  })
 })

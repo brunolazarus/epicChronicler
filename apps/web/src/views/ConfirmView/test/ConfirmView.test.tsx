@@ -3,9 +3,14 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ConfirmView } from '../ConfirmView.js'
 
+const flavours = [
+  { key: 'medieval', name: 'Medieval Chronicler', description: 'A scribe' },
+  { key: 'sports', name: 'Sports Commentator', description: 'A commentator' },
+]
+
 const base = {
   transcript: 'we got lost on the trail', setTranscript: vi.fn(), confirmTranscript: vi.fn(),
-  selectedFlavour: 'medieval', recordingLabel: '1:48 audio', wordCount: 6,
+  selectedFlavour: 'medieval', selectFlavour: vi.fn(), flavours, recordingLabel: '1:48 audio', wordCount: 6,
 }
 
 describe('ConfirmView', () => {
@@ -47,5 +52,17 @@ describe('ConfirmView', () => {
     render(<ConfirmView {...base} recordingLabel={null} />)
     expect(screen.queryByText(/audio$/)).toBeNull()
     expect(screen.getByText('6 words')).toBeInTheDocument()
+  })
+
+  it('changes the flavour before generating, without touching the landing picker', async () => {
+    const selectFlavour = vi.fn()
+    render(<ConfirmView {...base} selectFlavour={selectFlavour} />)
+    await userEvent.click(screen.getByTestId('confirm-flavour-sports'))
+    expect(selectFlavour).toHaveBeenCalledWith('sports')
+  })
+
+  it('reflects the selected flavour in the primary action label', () => {
+    render(<ConfirmView {...base} selectedFlavour="sports" />)
+    expect(screen.getByTestId('btn-generate')).toHaveTextContent(/Tell it as Sports Commentator/)
   })
 })

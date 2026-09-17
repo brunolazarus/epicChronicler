@@ -109,6 +109,8 @@ function Flow() {
         setTranscript={p.setTranscript}
         confirmTranscript={p.confirmTranscript}
         selectedFlavour={p.selectedFlavour ?? "medieval"}
+        selectFlavour={p.selectFlavour}
+        flavours={p.flavours}
         recordingLabel={p.recordingLabel}
         wordCount={p.transcriptWordCount}
         markerRef={markerRef}
@@ -127,6 +129,7 @@ function Flow() {
         retellAs={p.retellAs}
         jobOutcome={p.jobOutcome}
         restart={p.restart}
+        retryGenerate={p.retryGenerate}
         jobId={p.jobId ?? "—"}
         markerRef={markerRef}
       />

@@ -9,11 +9,29 @@ describe('EmptyStateShell', () => {
     expect(screen.getByText('This session has ended')).toBeInTheDocument()
   })
 
-  it('calls onPrimary for the generic-failure retry action', async () => {
+  it('falls back to onPrimary for the generic-failure retry action when onRetry is not given', async () => {
     const onPrimary = vi.fn()
     render(<EmptyStateShell kind="generic" jobId="8f31" onPrimary={onPrimary} />)
     await userEvent.click(screen.getByText('Try again'))
     expect(onPrimary).toHaveBeenCalled()
+  })
+
+  it('calls onRetry, not onPrimary, when both are given for a generic failure', async () => {
+    const onPrimary = vi.fn()
+    const onRetry = vi.fn()
+    render(<EmptyStateShell kind="generic" jobId="8f31" onPrimary={onPrimary} onRetry={onRetry} />)
+    await userEvent.click(screen.getByText('Try again'))
+    expect(onRetry).toHaveBeenCalled()
+    expect(onPrimary).not.toHaveBeenCalled()
+  })
+
+  it('"Back to start" always calls onPrimary, even when onRetry is given', async () => {
+    const onPrimary = vi.fn()
+    const onRetry = vi.fn()
+    render(<EmptyStateShell kind="generic" jobId="8f31" onPrimary={onPrimary} onRetry={onRetry} />)
+    await userEvent.click(screen.getByText('Back to start'))
+    expect(onPrimary).toHaveBeenCalled()
+    expect(onRetry).not.toHaveBeenCalled()
   })
 
   it('renders an icon for each kind', () => {
