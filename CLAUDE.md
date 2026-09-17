@@ -142,7 +142,9 @@ epicChronicler/
 │   ├── HORIZONS.md           # Post-MVP direction menu (non-linear — not every branch is a post)
 │   ├── superpowers/
 │   │   └── INDEX.md          # Chronological index of specs/plans — the technical decision ledger
-│   └── linkedin/             # LinkedIn drafts/published posts + 3 pre-superpowers decision logs
+│   ├── postmortems/
+│   │   └── INDEX.md          # Chronological index of incidents — the technical incident ledger
+│   └── posts/                 # LinkedIn drafts/published posts + 3 pre-superpowers decision logs
 │
 ├── docker-compose.yml        # Redis only
 ├── railway.web.json          # Railway config for epicChronicler-web (API)
@@ -234,3 +236,5 @@ When the service topology, data flow, or deployment config changes, update all o
 3. `README.md` — Project structure + design decisions + commands
 
 When adding a new spec or plan under `docs/superpowers/`, append one line to `docs/superpowers/INDEX.md` in the same commit — that index is what keeps the ledger discoverable as it grows.
+
+When filing a new postmortem under `docs/postmortems/`, append one line to `docs/postmortems/INDEX.md` in the same commit — same reason.
