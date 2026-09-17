@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { client, type JobStatus } from '@chronicler/api-client'
+import { MOCK_API, mockJobStatus } from './mock.js'
 
 export type { JobStatus }
 
@@ -9,6 +10,7 @@ export function useJobPoll(jobId: string | null) {
   return useQuery<JobStatus, Error>({
     queryKey: ['job', jobId],
     queryFn: async () => {
+      if (MOCK_API) return mockJobStatus(jobId!)
       const { data, error, response } = await client.GET('/api/v1/pipeline/jobs/{id}', {
         params: { path: { id: jobId! } },
       })
