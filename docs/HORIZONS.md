@@ -37,6 +37,16 @@ want to be credited before publishing.
 - **Expand planned features.** Needs scoping — `docs/PRD.md` §2's Backlog already names the
   specific shelved items (accounts/groups, TLDR generator, push notifications, retell-in-a-new-flavour,
   contributor cap changes). Start there rather than reopening the list from scratch.
+- **A fifth flavour — GTA-style radio DJ.** Acid, edgy, shock-jock energy narrating the story,
+  alongside the current four (medieval/sports/nature/fantasy). Same three pieces every flavour needs:
+  an LLM system prompt (the main carrier of the attitude), a TTS voice, and scene art. The voice is
+  the open question — checked `packages/core/src/tts/openrouter-models.ts`, and neither Kokoro's
+  roster (British/American, male/female, described plainly: "authoritative," "energetic," "warm,"
+  "expressive") nor OpenAI's four standard voices (onyx/echo/nova/shimmer) have anything close to a
+  gravelly radio-personality character. The LLM rewrite can carry a lot of the tone in the text
+  itself, but landing the voice may need a different TTS provider — ElevenLabs is already sitting as
+  an evaluated-but-untested option from Post 3's cost post, and this could be the concrete reason to
+  finally test it.
 - **New AI providers for flavour — Suno.** Adding music/audio texture as a new dimension of a
   "flavour," not just voice. Needs scoping: background scoring under the narration, a separate
   generated "soundtrack" clip, or something else — decide the shape before touching the provider
